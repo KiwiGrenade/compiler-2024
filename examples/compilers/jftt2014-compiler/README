@@ -1,0 +1,44 @@
+README
+
+Marcin Słowik 194149
+
+Kompilacja:
+  Do poprawnego wygenerowania kodu wymagany jest generator parserów bison w wersji > 3.0, oraz analizator leksykalny flex. Poprawna generacja parsera była testowana z wersjami odpowiednio 3.0.2 i 2.5.39.
+  Do poprawnej kompilacji wymagany jest kompilator C++ obsługujący przynajmniej częściowo standard C++11 (w starszych wersjach gcc oznaczany jako c++0x), oraz standardową bibliotekę C++ w wersji C++11. Testowano i osiągnięto poprawny kod dla Gnu Compiler Collection w wersjach 4.8.2 i 4.6.3, jednak napotkano problemy z 4.7.1 dla win32 (w pakiecie MinGW).
+  
+  Kompilacja kompilatora opowinna wyglądać następująco:
+  
+  $ make
+  
+  Kompilacja, oraz "kompilacja" przykładowego kodu to z kolei:
+  
+  $ make test
+  
+  Target machine kompiluje program ./vm który był używany jako maszyna rejestrowa (program z przykładowych kodów z opcją "debuggingu")
+  
+Uruchamianie kompilatora:
+  Kompilator uruchamiany jest poleceniem ./compiler z następującymi argumentami:
+  
+  $ ./compiler [-o (output)] [-v] [-s] [-OX] [-h] [-a] [(input)]
+  
+  Gdzie:
+    -o determinuje plik wyjściowy. Domyślnie używane jest standardowe wyjście
+    -v to tryb VERBOSE - drukuje cały dziennik kompilacji
+    -s to tryb SILENT  - nie drukuje nic, poza błędami
+    -OX to wybór optymalizacji. Aktualnie -O0 wyłącza całą optymalizację, każda inna wartość pozostawia ją włączoną
+    -h drukuje pomoc
+    -a to tryb ASSEMBLE ONLY - nie produkuje kodu na maszynę
+               zwraca kod bez zmiany etykiet i rejestrów
+    (input) to plik wejściowy. Domyślnie czytane jest standardowe wejście
+    
+Dostarczone pliki:
+  * grammar.y, lexer.lex - pliki definicji analizatora leksykalnego i gramatyki, zawierają minimalną ilość kodu, wywołująć głównie funkcje z innych plików.
+  * grammar.cpp, grammar.hpp, lexer.cpp - prekompilowane wersje powyższych plików, dostarczone w przypadku problemów z flexem/bisonem (make powinien wziąć prekompilowane, jeżeli nie uda się wygenerować nowych)
+  * grammar_pre.hpp, grammar_post.hpp, lexer_pre.hpp, lexer_post.hpp - pliki zawierające deklaracje zmiennych i funkcji używanych tylko w lekserze/parserze, albo deklaracje zmiennych globalnych z w/w.
+  * code_block, instruction, label, snippet, var_block (.hpp, .cpp) - nagłówki i źródła elementów programu. Snippet to zbiór bloków kodu, instrukcja to pojedyńcza instrukcja assemblerowa, var_block to deklaracja zmiennej, label to etykieta używana przy rozkazach skoku, code_block to abstrakcyjna baza dla w/w.
+  * handlers.cpp - defincje i deklaracje funkcji obsługujących wyprowadzenia w drzewie gramatyki i budujących drzewo programu
+  * definitions.hpp - uniwersalne deklaracje używane przez wiele plików, oraz makra, także czysto użytkowe
+  * utils.cpp - definicje funkcji main, error, warning, generacji kodu, itp
+  * typedefs.hpp, types.hpp - makra i typedefs, oraz załączanie deklaracji struktur.
+  
+  Do źródeł dołączyłem również na wypadek problemów z kompilacją wersję kompilatora i vm prekompilowane na GNU/Linux 3.14.1-amd64

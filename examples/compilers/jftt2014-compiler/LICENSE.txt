@@ -1,0 +1,2 @@
+Unless stated otherwise, all source files in the main directory are ALL RIGHTS RESERVED by Marcin Słowik.
+All files in the "interpreter" directory are ALL RIGHTS RESERVED by Maciej Gębala.

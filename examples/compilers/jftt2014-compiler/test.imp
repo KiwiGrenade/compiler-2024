@@ -1,0 +1,101 @@
+CONST
+	nil=0, one=1, two=2, tri=3, for=4, fiv=5, six=6,
+	billion = 1000000000, sixsixsix=666
+VAR
+	a b c
+BEGIN
+	a := tri;
+	b := two;
+	c := a/b;
+	WRITE c;
+
+	a := six;
+	b := tri;
+	c := a/b;
+	WRITE c;
+
+	c := six/c;
+	WRITE c;
+
+	c := six/fiv;
+	WRITE c;
+
+	b := for;
+	c := a % b;
+	WRITE c;
+
+	a := billion;
+	b := sixsixsix;
+
+	c := a % b;
+	WRITE c;
+
+    c := a / b;
+    WRITE c;
+
+    c := a * b;
+    WRITE c;
+    
+    a := one;
+    b := one;
+    c := two;
+    
+    IF a > b THEN
+        WRITE sixsixsix;
+    ELSE
+        WRITE billion;
+    END
+    
+    IF a >= b THEN
+        WRITE billion;
+    ELSE
+        WRITE sixsixsix;
+    END
+    
+    IF a < b THEN
+        WRITE sixsixsix;
+    ELSE
+        WRITE billion;
+    END
+    
+    IF a <= b THEN
+        WRITE billion;
+    ELSE
+        WRITE sixsixsix;
+    END
+    
+    IF a > c THEN
+        WRITE sixsixsix;
+    ELSE
+        WRITE billion;
+    END
+    
+    IF c >= b THEN
+        WRITE billion;
+    ELSE
+        WRITE sixsixsix;
+    END
+    
+    IF c < b THEN
+        WRITE sixsixsix;
+    ELSE
+        WRITE billion;
+    END
+    
+    IF a <= c THEN
+        WRITE billion;
+    ELSE
+        WRITE sixsixsix;
+    END
+    
+    a := sixsixsix;
+    WHILE a != nil DO
+        a := a / tri;
+        b := a % tri;
+        WRITE b;
+    END
+    
+    a:=six;
+    a:=nil;
+    a:=one;
+END

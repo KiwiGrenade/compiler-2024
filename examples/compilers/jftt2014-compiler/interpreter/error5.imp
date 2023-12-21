@@ -1,0 +1,9 @@
+(* Błąd w linii 7: próba zmiany stałej a *)
+CONST
+  a = 1
+VAR
+  b
+BEGIN
+  READ a;
+  b:=a;
+END
