@@ -1,0 +1,34 @@
+"Trzy podejścia do kompilatora" - skrócone notatki z lab. przed świętami:
+
+    Podejście "głupie"/"naiwne"
+        Prosty kompilator, robi translację bezpośrednio z języka imperatywnego na kod maszynowy
+        Brak reprezentacji pośredniej jako takiej
+        Kod trzeba zapisać w liście, buforze, lub pliku tymczasowym, aby poprawić potem nienzne pierwotnie adresy skoków
+        Adresy zmiennych można przypisać od razu podczas deklaracji, np. dla procedury PROCEDURE swap (a,b) IS VAR c BEGIN ... END możemy przypisać adres a - 1, b - 2, c - 3 (trzeba jednak pamiętać, że a i b są referencjami na zmienne), adres powrotu - 4
+        (+) bardzo prosty do napisania
+        (-) mało opcji na optymalizację/trudna optymalizacja
+
+    Podejście "sprytne"/"złożone"
+        Wiele postaci pośrednich - np. AST, reprezentacja typu SSA, reprezentacja typu pseudo-kodu maszynowego (kod maszynowy + pseudoinstrukcje)
+        Reprezentacje pośrednie oparte na BB (basic blocks) - bloki kodu posiadające dokładnie jeden początek (etykietę) i jeden koniec (instrukcje zwaną terminatorem). Terminator to instrukcja skoku, skoku warunkowego z dodatkową adnotacją gdzie skoczyć w przeciwnym przypadku, instrukcja HALT, itp.
+        Uwaga: istotna jest tutaj taka reprezentacja np. instrukcji JPOS która ma więcej niż jeden cel, np. JPOS #if-then, #if-else oznacza "jeżeli wartość w p_0 jest dodatnia skocz do #if-then, w przeciwnym wypadku skocz do #if-else". Na końcowym etapie składania kodu takie instrukcje można zastąpić albo bezpośrednio wklejeniem bloku #if-else po instrukcji JPOS, albo - jeżeli ten blok już został wklejony - po prostu instrukcją JUMP #if-else.
+            Przykładowa postać pośrednia AST: (PROCEDUDE, (swap, (a, b), (c)), [(ASSIGN, c, a), (ASSIGN, a, b), (ASSIGN, b, c)]
+            Przykładowa postać pośrednia SSA: #swap: %c0 = LOADI @a; %a0 = LOADI @b; STOREI @a, %a0; STOREI @b, %c0; JUMPI @swapRET
+            Przykładowa postać pośrednia PKM: #swap: LOADI @a; STORE @c0; LOADI @b; STOREI @a; LOAD @c0; STOREI @b; JUMPI @swapRET
+            Przykładowa postać końcowa procedury swap: #swap: LOADI 1 [@a]; STORE 3 [@c0]; LOADI 2 [@b]; STOREI 1 [@a]; LOAD 3 [@c0]; STOREI 2 [@b]; JUMPI 4 [@swapRET]
+        Komórki pamięci przypisywane do zmiennych dopiero na późnym etapie kompilacji
+        Kompilacja podzielona na etapy (przebiegi) - transformacje i analizy
+            Niektóre transformacje mają na celu optymalizacje, inne np. eliminują pseudoinstrukcje
+        Kompilacja kończy się kiedy wszystkie pseudoinstrukcje z ostatniej postaci pośredniej zostaną zastąpione "legalnymi" instrukcjami
+        (-) bardzo trudny do napisania dobrze
+        (-) nadmiar postaci pośrednich potrafi wręcz zepsuć optymalizację
+        (+) największe możliwości optymalizacji
+
+    Podejście zrównoważone
+        Czerpie trochę z jednego, a trochę z drugiego
+        Jedna postać pośrednia (względnie 2 z AST) - pseudo-kod maszynowy oparty na BB (z terminatorami) generowany bezpośrednio z AST
+        (+) niewiele mniejsze możliwości optymalizacji niż podejście "sprytne"
+        (+) najbardziej zrównoważony pod względem jakości kodu a wymaganego wysiłku
+        (-) trudniejszy niż podejście "naiwne"
+
+
