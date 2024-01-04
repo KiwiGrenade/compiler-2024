@@ -1,0 +1,11 @@
+RST a
+INC a
+INC a
+JPOS 6
+INC a
+INC a
+INC a
+INC a
+WRITE
+HALT
+
