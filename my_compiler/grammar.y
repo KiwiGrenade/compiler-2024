@@ -1,3 +1,7 @@
+// TODO: check if api.value.type can be an int: yes -> delete line below
+%define api.value.type {std::string}
+%define parse.error verbose
+
 // punctuators
 %token SEMICOLON
 %token COMMA
@@ -121,3 +125,4 @@ identifier:
     pidentifier
     | pidentifier LBRCKT num RBRCKT
     | pidentifier LBRCKT pidentifier RBRCKT
+    
