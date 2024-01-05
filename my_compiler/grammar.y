@@ -4,7 +4,7 @@
 %token PLUS
 %token MINUS
 %token ASTERISK
-%token FSLASH
+%token FWSLASH
 %token PERCENT
 %token NEQUAL
 %token MORE
@@ -75,7 +75,7 @@ expression   -> value
              | value PLUS value
              | value MINUS value
              | value ASTERISK value
-             | value FSLASH value
+             | value FWSLASH value
              | value PERCENT value
 
 condition    -> value EQUAL value
