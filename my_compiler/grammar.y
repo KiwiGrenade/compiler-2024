@@ -1,14 +1,12 @@
-// TODO: check if api.value.type can be an int: yes -> delete line below
 %{
-    #include <iostream>
-    #include <string>
-    int yylex();
-    int yyparse();
-    void yyerror(char const *);
+    #include "defs.hpp"
+    extern FILE* yyin;
 %}
+
+%define api.header.include {"grammar.hpp"}
 %define api.value.type {std::string}
 %define parse.error verbose
-
+%locations
 // punctuators
 %token SEMICOLON
 %token COMMA
@@ -131,5 +129,33 @@ value:
 identifier: 
     pidentifier
     | pidentifier LBRCKT num RBRCKT
-    | pidentifier LBRCKT pidentifier RBRCKT
-    
+    | pidentifier LBRCKT pidentifier RBRCKT  
+
+%%
+void yyerror(const char *string)
+{
+    std::cerr << "Error at line " << currLine << ": " << string << std::endl;
+}
+
+int yywrap()
+{
+    return 1;
+}
+
+int main(int argc, char* argv[])
+{
+    FILE *pFILE_IN  = fopen(argv[1], "r");
+    FILE *pFILE_OUT = fopen(argv[2], "w");
+
+    if(!pFILE_IN)
+    {
+        std::cerr << "ERROR: file " << argv[1] << " not found!" << std::endl;
+        return 1;
+    }
+
+    yyin = pFILE_IN;
+
+
+    yyparse();
+    return 0;
+}

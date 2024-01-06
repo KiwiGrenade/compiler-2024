@@ -1,9 +1,7 @@
 %top{
-    #include <string>
+    #include "defs.hpp"
     #include "grammar.hpp"
-    size_t currLine = 0;
 }
-
 comment         "#".*|\\n
 whitespace      [[:blank:]]+ 
 num             [[:digit:]]+
@@ -24,7 +22,7 @@ newline         \n|\r|\n\r
 "+"     { return PLUS; }
 "-"     { return MINUS; }
 "*"     { return ASTERISK; }
-"\""    { return FWSLASH; }
+"/"      { return FWSLASH; }
 "%"     { return PERCENT; }
 
 "="     { return EQUAL; }
@@ -82,3 +80,4 @@ newline         \n|\r|\n\r
             }
         }
 %%
+size_t currLine = 1;
