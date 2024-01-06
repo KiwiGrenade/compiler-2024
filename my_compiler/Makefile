@@ -16,5 +16,8 @@ parser: bison lexer
 	$(CXX) -c lexer.cpp -o lexer.o
 	$(CXX) -c grammar.cpp -o grammar.o
 
-clean-all:
+clean-output:
+	rm -rf output
+
+clean-all: clean-output
 	rm -f grammar.cpp grammar.hpp lexer.cpp lexer.o grammar.o compiler
