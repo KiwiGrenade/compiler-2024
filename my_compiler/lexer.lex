@@ -61,6 +61,8 @@ newline         \n|\r|\n\r
                 return KW_ELSE;
             } else if (KW == "ENDIF") {
                 return KW_ENDIF;
+            } else if (KW == "WHILE") {
+                return KW_WHILE;
             } else if (KW == "DO") {
                 return KW_DO;
             } else if (KW == "ENDWHILE") {
