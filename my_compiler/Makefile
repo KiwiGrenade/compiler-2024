@@ -1,9 +1,10 @@
 STD = -std=c++17
 CXX = g++ $(STD)
+
 all: compiler
 
-compiler: lexer parser
-
+compiler: parser
+	$(CXX) lexer.o grammar.o -o compiler
 
 lexer:
 	flex -o lexer.cpp lexer.lex
@@ -16,4 +17,4 @@ parser: bison lexer
 	$(CXX) -c grammar.cpp -o grammar.o
 
 clean-all:
-	rm -f grammar.cpp grammar.hpp lexer.cpp lexer.o grammar.o
+	rm -f grammar.cpp grammar.hpp lexer.cpp lexer.o grammar.o compiler
