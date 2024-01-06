@@ -2,6 +2,9 @@
 %{
     #include <iostream>
     #include <string>
+    int yylex();
+    int yyparse();
+    void yyerror(char const *);
 %}
 %define api.value.type {std::string}
 %define parse.error verbose
