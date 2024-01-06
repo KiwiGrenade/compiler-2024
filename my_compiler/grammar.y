@@ -1,4 +1,8 @@
 // TODO: check if api.value.type can be an int: yes -> delete line below
+%{
+    #include <iostream>
+    #include <string>
+%}
 %define api.value.type {std::string}
 %define parse.error verbose
 
