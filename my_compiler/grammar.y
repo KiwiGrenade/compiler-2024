@@ -1,12 +1,13 @@
 %{
     #include "defs.hpp"
+    // #include "AST.cpp"
     extern FILE* yyin;
 %}
-
 %define api.header.include {"grammar.hpp"}
 %define api.value.type {std::string}
 %define parse.error verbose
 %locations
+
 // punctuators
 %token SEMICOLON
 %token COMMA
@@ -58,22 +59,35 @@
 
 %%
 
+    /* program all -> procedures + main body */
 program_all:
     procedures main
 
+    /* procedures -> 0 or more procedure */
 procedures:
      procedures KW_PROCEDURE proc_head KW_IS declarations KW_IN commands KW_END
     | procedures KW_PROCEDURE proc_head KW_IS KW_IN commands KW_END
-    | 
+    | %empty
 
+    /* main - > (var declarations + commands) OR commands */
 main:
     KW_PROGRAM KW_IS declarations KW_IN commands KW_END
     | KW_PROGRAM KW_IS KW_IN commands KW_END
 
+    /* commands -> one or more command */
 commands:
     commands command
     | command
 
+    /* command -> self explenatory 
+    assign,
+    if, 
+    ifelse, 
+    while, 
+    repeat, 
+    procedure(function)call, 
+    read, 
+    write) */
 command:
      identifier ASSIGN expression SEMICOLON
     | KW_IF condition KW_THEN commands KW_ELSE commands KW_ENDIF
@@ -83,29 +97,33 @@ command:
     | proc_call SEMICOLON
     | KW_READ identifier SEMICOLON
     | KW_WRITE value SEMICOLON
-
+ 
 proc_head:
     pidentifier LPRNT args_decl RPRNT
 
 proc_call: 
     pidentifier LPRNT args RPRNT
 
+    /*declarations -> one ore more ints or tables, separated by commas*/
 declarations:
      declarations COMMA pidentifier
     | declarations COMMA pidentifier LBRCKT num RBRCKT
     | pidentifier
     | pidentifier LBRCKT num RBRCKT
 
+    /*args_decl -> one or more ints or tables, separated by commas (with T before tables)*/
 args_decl:
      args_decl COMMA pidentifier
     | args_decl COMMA KW_T pidentifier
     | pidentifier
     | KW_T pidentifier
-
+    
+    /*args -> one or more ints or tables (without T) */
 args:
     args COMMA pidentifier
     | pidentifier
 
+    /*expression -> 1 OR 2 values*/
 expression:
     value
     | value PLUS value
@@ -114,6 +132,7 @@ expression:
     | value FWSLASH value
     | value PERCENT value
 
+    /*condition -> 2 values*/
 condition:
     value EQUAL value
     | value NEQUAL value
@@ -122,11 +141,13 @@ condition:
     | value MOREOREQUAL value
     | value LESSOREQUAL value
 
+    /*value -> number or identifier( -> variable or table)*/
 value:
     num
     | identifier
 
 identifier: 
+    /*identifier( -> variable or table)*/
     pidentifier
     | pidentifier LBRCKT num RBRCKT
     | pidentifier LBRCKT pidentifier RBRCKT  
