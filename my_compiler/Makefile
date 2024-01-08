@@ -3,21 +3,22 @@ CXX = g++ $(STD)
 
 all: compiler
 
-compiler: parser
-	$(CXX) lexer.o grammar.o -o compiler
+compiler: parser types
+	$(CXX) lexer.o grammar.o AST.o handlers.o  -o compiler
 
 lexer:
 	flex -o lexer.cpp lexer.lex
 
 bison:
-	bison -o grammar.cpp -d grammar.y
+	bison -o grammar.cpp grammar.y
 
 parser: bison lexer
 	$(CXX) -c lexer.cpp -o lexer.o
 	$(CXX) -c grammar.cpp -o grammar.o
+	$(CXX) -c handlers.cpp -o handlers.o
 
-clean-output:
-	rm -rf output
+types:
+	$(CXX) -c AST.cpp -o AST.o
 
-clean-all: clean-output
-	rm -f grammar.cpp grammar.hpp lexer.cpp lexer.o grammar.o compiler
+clean:
+	rm -f grammar.cpp grammar.hpp lexer.cpp lexer.o grammar.o handlers.o AST.o compiler
