@@ -1,6 +1,6 @@
 %top{
-    #include "defs.hpp"
-    #include "grammar.hpp"
+    #include "definitions.hpp"
+    #include "types.hpp"
 }
 comment         "#".*|\\n
 whitespace      [[:blank:]]+ 

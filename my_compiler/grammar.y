@@ -1,9 +1,9 @@
-%{
-    #include "defs.hpp"
-    // #include "AST.cpp"
+%code requires {
+    #include "definitions.hpp"
+    #include "types.hpp"
     extern FILE* yyin;
-%}
-%define api.header.include {"grammar.hpp"}
+}
+/* %define api.header.include {"grammar.hpp"} */
 %define api.value.type {std::string}
 %define parse.error verbose
 %locations
@@ -56,6 +56,7 @@
 // atomic tokens
 %token num
 %token pidentifier
+
 
 %%
 
@@ -120,37 +121,37 @@ args_decl:
     
     /*args -> one or more ints or tables (without T) */
 args:
-    args COMMA pidentifier
-    | pidentifier
+    args COMMA pidentifier  {$$ = $1 + $2 + $3;}
+    | pidentifier           {$$ = $1;}
 
     /*expression -> 1 OR 2 values*/
 expression:
-    value
-    | value PLUS value
-    | value MINUS value
-    | value ASTERISK value
-    | value FWSLASH value
-    | value PERCENT value
+    value                   {$$ = handleExpression($1, operator_type::_NONE, "_NONE");}
+    | value PLUS value      {$$ = handleExpression($1, operator_type::_ADD, $3);}
+    | value MINUS value     {$$ = handleExpression($1, operator_type::_SUB, $3);}
+    | value ASTERISK value  {$$ = handleExpression($1, operator_type::_MUL, $3);}
+    | value FWSLASH value   {$$ = handleExpression($1, operator_type::_DIV, $3);}
+    | value PERCENT value   {$$ = handleExpression($1, operator_type::_MOD, $3);}
 
     /*condition -> 2 values*/
 condition:
-    value EQUAL value
-    | value NEQUAL value
-    | value MORE value
-    | value LESS value
-    | value MOREOREQUAL value
-    | value LESSOREQUAL value
+    value EQUAL value           {$$ = handleCondition($1, operator_type::_EQ, $3);}
+    | value NEQUAL value        {$$ = handleCondition($1, operator_type::_NEQ, $3);}
+    | value MORE value          {$$ = handleCondition($1, operator_type::_LMORE, $3);}
+    | value LESS value          {$$ = handleCondition($1, operator_type::_LLESS, $3);}
+    | value MOREOREQUAL value   {$$ = handleCondition($1, operator_type::_LHEQ, $3);}
+    | value LESSOREQUAL value   {$$ = handleCondition($1, operator_type::_LLEQ, $3);}
 
     /*value -> number or identifier( -> variable or table)*/
 value:
-    num
-    | identifier
+    num             {$$ = $1;}       
+    | identifier    {$$ = $1;}
 
 identifier: 
     /*identifier( -> variable or table)*/
-    pidentifier
-    | pidentifier LBRCKT num RBRCKT
-    | pidentifier LBRCKT pidentifier RBRCKT  
+    pidentifier                                 {$$ = $1;}
+    | pidentifier LBRCKT num RBRCKT             {$$ = $1;}
+    | pidentifier LBRCKT pidentifier RBRCKT     {$$ = $1;}
 
 %%
 void yyerror(const char *string)
