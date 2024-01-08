@@ -17,8 +17,9 @@ int yyparse();
 typedef std::string ident;
 
 // void chuj();
-std::string handleCondition(std::string VAL1, operator_type OP_TYPE, std::string VAL2);
+std::string handleCondition(std::string VAL1, int OP_TYPE, std::string VAL2);
 #define handleExpression handleCondition
+#define handleWrite handleCondition
 extern size_t currLine;
 
 #endif

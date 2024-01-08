@@ -97,7 +97,7 @@ command:
     | KW_REPEAT commands KW_UNTIL condition SEMICOLON
     | proc_call SEMICOLON
     | KW_READ identifier SEMICOLON
-    | KW_WRITE value SEMICOLON
+    | KW_WRITE value SEMICOLON                                      {$$ = handleWrite($2, content_type::_WRITE, "_WRITE");}
  
 proc_head:
     pidentifier LPRNT args_decl RPRNT
