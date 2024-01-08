@@ -10,7 +10,7 @@ lexer:
 	flex -o lexer.cpp lexer.lex
 
 bison:
-	bison -o grammar.cpp grammar.y
+	bison -o grammar.cpp -d grammar.y
 
 parser: bison lexer
 	$(CXX) -c lexer.cpp -o lexer.o
