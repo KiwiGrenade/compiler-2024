@@ -4,7 +4,7 @@
     extern FILE* yyin;
 }
 /* %define api.header.include {"grammar.hpp"} */
-%define api.value.type {std::string}
+%define api.value.type {ident}
 %define parse.error verbose
 %locations
 
@@ -90,13 +90,13 @@ commands:
     read, 
     write) */
 command:
-     identifier ASSIGN expression SEMICOLON
-    | KW_IF condition KW_THEN commands KW_ELSE commands KW_ENDIF
-    | KW_IF condition KW_THEN commands KW_ENDIF
-    | KW_WHILE condition KW_DO commands KW_ENDWHILE
-    | KW_REPEAT commands KW_UNTIL condition SEMICOLON
-    | proc_call SEMICOLON
-    | KW_READ identifier SEMICOLON
+     identifier ASSIGN expression SEMICOLON                         {$$ = handleAssignment($1, $3);}
+    | KW_IF condition KW_THEN commands KW_ELSE commands KW_ENDIF    {$$ = handleIfElse($2, $4, $6);}
+    | KW_IF condition KW_THEN commands KW_ENDIF                     {$$ = handleIf($2, $4);}
+    | KW_WHILE condition KW_DO commands KW_ENDWHILE                 {$$ = handleWhile($2, $4);}
+    | KW_REPEAT commands KW_UNTIL condition SEMICOLON               {$$ = handleRepeat($2, $4);}
+    | proc_call SEMICOLON                                           {$$ = handleProcCall($1);}
+    | KW_READ identifier SEMICOLON                                  {$$ = handleRead($2, content_type::_READ, "_READ");}
     | KW_WRITE value SEMICOLON                                      {$$ = handleWrite($2, content_type::_WRITE, "_WRITE");}
  
 proc_head:

@@ -2,15 +2,16 @@
 #include <algorithm>
 #include "AST.hpp"
 
-std::vector<CodeBlock> AST::vertices;
+// std::vector<CodeBlock> AST::vertices;
 
-CodeBlock& AST::get_vertex(int _id) {
+CodeBlock* AST::get_vertex(int _id) {
+    CodeBlock* result = nullptr;
     for(auto vert:AST::vertices){
         if(vert.id == _id) {
-            return vert;
+            result = &vert;
         }
     }
-    throw "Vertex with id: " + std::to_string(_id) + "not found!";
+    return result;
 }
 
 void AST::add_vertex(size_t id) {
@@ -20,7 +21,7 @@ void AST::add_vertex(size_t id) {
 void AST::add_edge(int v_id, int u_id) {
     try
     {
-        get_vertex(v_id).next_true_id = u_id;
+        get_vertex(v_id)->next_true_id = u_id;
     }
     catch(const std::exception& e)
     {

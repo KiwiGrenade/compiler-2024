@@ -32,8 +32,8 @@ ident handleCondition(ident VAL1, int INS_TYPE, ident VAL2) {
     //      + std::to_string(instruction.type_of_instruction));
     
     EdgeProvider provider;
-    provider.set_begin_id(id);
-    provider.set_end_id(id);
+    provider.set_begin_id(curr_vertex_id);
+    provider.set_end_id(curr_vertex_id);
     providers.push_back(provider);
     
     curr_vertex_id++;
@@ -147,5 +147,36 @@ ident handleProcCall(ident PROC_CALL) {
             curr_vertex_id++;
             return std::to_string(curr_vertex_id - 1);
         }
-    }   
+    }
+    return "no procedure found";
+}
+
+ident handleWhile(ident CONDITION_ID, ident COMMANDS_ID) {
+    int cond_id = stoi(CONDITION_ID);
+    int comms_id = stoi(COMMANDS_ID);
+    
+    AST::add_vertex(curr_vertex_id);
+    AST::vertices[AST::vertices.size() - 1].empty = 1;
+
+    AST::add_edge(providers[cond_id]._begin_id, providers[comms_id]._begin_id, true);
+    AST::add_edge(providers[comms_id]._end_id, providers[cond_id]._begin_id);
+    AST::add_edge(providers[cond_id]._begin_id, curr_vertex_id, false);
+
+    AST::get_vertex(providers[cond_id]._begin_id)->instructions[0]._while_cond = true;
+    
+    EdgeProvider provider;
+    provider._begin_id = providers[cond_id]._begin_id;
+    provider._end_id = curr_vertex_id;
+    providers.push_back(provider);
+
+    curr_vertex_id++;
+    return std::to_string(curr_vertex_id - 1);
+}
+
+//TODO: check if this is right
+ident handleAssignment(ident IDENTIFIER_ID, ident EXPRESSION_ID) {
+    int expr_id = stoi(EXPRESSION_ID);
+    AST::get_vertex(providers[expr_id]._begin_id)->instructions[0].left = Value(IDENTIFIER_ID);
+    AST::get_vertex(providers[expr_id]._begin_id)->instructions[0].type_of_instruction = content_type::_ASS;
+    return EXPRESSION_ID;
 }
