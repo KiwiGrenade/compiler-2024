@@ -38,7 +38,7 @@ struct Value {
     // }
 };
 
-//TODO: update content enum
+//TODO: merge those two enums?
 enum content_type {
     _COND = 1,
     _READ = 2,
@@ -48,7 +48,6 @@ enum content_type {
     _ENDWHILE = 17
 } ;
 
-//TODO: update operator enum
 enum operator_type {
     _MUL = 5,
     _DIV = 6,
@@ -64,6 +63,7 @@ enum operator_type {
     _NONE = 0
 } ;
 
+//
 // struct Expression {
 //     operator_type type;
 //     Value left;
