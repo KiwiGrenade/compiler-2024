@@ -8,6 +8,9 @@ struct AST {
     static std::vector<CodeBlock> vertices;
     virtual ~AST() = default;
     static void add_vertex(size_t id);
+    static void add_edge(int v_id, int u_id);
+    static void add_edge(int v_id, int u_id, bool flag);
+    static CodeBlock& get_vertex(int id);
 };
 
 
