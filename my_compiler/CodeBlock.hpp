@@ -64,22 +64,22 @@ enum operator_type {
     _NONE = 0
 } ;
 
-struct Expression {
-    operator_type type;
-    Value left;
-    Value right;
-    // std::string exp_to_string() {
-    //     return "%%%exp---->" + left.val_to_string() + "____" + std::to_string(type_of_operator) + "____" + right.val_to_string();
-    // }
-};
+// struct Expression {
+//     operator_type type;
+//     Value left;
+//     Value right;
+//     // std::string exp_to_string() {
+//     //     return "%%%exp---->" + left.val_to_string() + "____" + std::to_string(type_of_operator) + "____" + right.val_to_string();
+//     // }
+// };
 
 struct Instruction {
-    bool _while_cond = 0;
-    content_type type_of_instruction;
-    int type_of_operator;
+    // bool _while_cond = 0;
+    int type_of_instruction;
+    // int type_of_operator;
     Value left;
     Value right;
-    Expression expr;
+    // Expression expr;
     std::vector<Value> args;
     std::string proc_id;
 
@@ -92,6 +92,26 @@ struct Instruction {
             return "";
         //}
     }
+};
+
+
+// TODO: get rid of this. It does not make sense.
+struct EdgeProvider {
+        int _begin_id;
+        int _end_id;
+        int get_begin_id() {
+                return _begin_id;
+        }
+        void set_begin_id(int to_set) {
+                _begin_id = to_set;
+        }
+
+        int get_end_id() {
+                return _end_id;
+        }
+        void set_end_id(int to_set) {
+                _end_id = to_set;
+        }
 };
 
 class CodeBlock {
