@@ -1,10 +1,16 @@
 #ifndef DEFS_HPP
 #define DEFS_HPP
+
 #include <string>
 #include <iostream>
 #include <memory>
+
+typedef std::string ident;
+
 #include "CodeBlock.hpp"
+#include "handlers.hpp"
 #include "grammar.hpp"
+
 #define ptr(type) std::shared_ptr<type>
 #define new_ptr(type, ...) std::make_shared<type>(__VA_ARGS__)
 
@@ -14,12 +20,8 @@ void yyerror(const char* string);
 int yylex();
 int yyparse();
 
-typedef std::string ident;
 
 // void chuj();
-std::string handleCondition(std::string VAL1, int OP_TYPE, std::string VAL2);
-#define handleExpression handleCondition
-#define handleWrite handleCondition
 extern size_t currLine;
 
-#endif
+#endif  // DEFS_HPP
