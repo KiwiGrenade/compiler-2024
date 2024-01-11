@@ -1,18 +1,49 @@
 #ifndef AST_HPP
 #define AST_HPP
 
+#include <map>
+#include <memory>
 #include <vector>
 #include "CodeBlock.hpp"
+#include "definitions.hpp"
 
+enum State {
+    _LOCKED = 0,
+    _UNLOCKED = 1
+};
+
+struct Register {
+    int id;
+    State state;
+    
+    Register(int _id) : id(_id), state(_UNLOCKED) {};
+};
+
+struct Memory {
+    std::map<ident, ptr(Register)> variables;
+    std::vector<ident> arg_ids;
+    ptr(Register) ret_reg = nullptr;
+};
+struct Architecture {
+    int var_p;
+    std::map<ident, Memory> procedures_memory;
+    
+    void assert_var(ident var_id, ident proc_id){
+        procedures_memory[proc_id].variables[var_id] = new_ptr(Register, var_p);
+        var_p++;
+    }
+};
 struct AST {
     static std::vector<CodeBlock> vertices;
-    virtual ~AST() = default;
     static void add_vertex(size_t id);
     static void add_edge(int v_id, int u_id);
     static void add_edge(int v_id, int u_id, bool flag);
-    static CodeBlock* get_vertex(int id);
+    static CodeBlock& get_vertex(int id);
+    static std::map<int, std::string> head_map;
+    static Architecture architecture;
+    
+    virtual ~AST() = default;
 };
-
 
 // enum table_ref_type {
 //     NUM = 1,
