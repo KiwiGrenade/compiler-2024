@@ -4,14 +4,13 @@
 
 // std::vector<CodeBlock> AST::vertices;
 
-CodeBlock* AST::get_vertex(int _id) {
-    CodeBlock* result = nullptr;
-    for(auto vert:AST::vertices){
+CodeBlock& AST::get_vertex(int _id) {
+    for(CodeBlock& vert : AST::vertices){
         if(vert.id == _id) {
-            result = &vert;
+            return vert;
         }
     }
-    return result;
+    throw "Error: node " + std::to_string(_id) + "not found!"; 
 }
 
 void AST::add_vertex(size_t id) {
@@ -21,7 +20,7 @@ void AST::add_vertex(size_t id) {
 void AST::add_edge(int v_id, int u_id) {
     try
     {
-        get_vertex(v_id)->next_true_id = u_id;
+        get_vertex(v_id).next_true_id = u_id;
     }
     catch(const std::exception& e)
     {
@@ -32,9 +31,9 @@ void AST::add_edge(int v_id, int u_id) {
 void AST::add_edge(int v_id, int u_id, bool flag) {
     try {
         if (flag) {
-            AST::get_vertex(v_id)->next_true_id = u_id;
+            AST::get_vertex(v_id).next_true_id = u_id;
         } else {
-            AST::get_vertex(v_id)->next_false_id = u_id;
+            AST::get_vertex(v_id).next_false_id = u_id;
             std::cout << "dodalem" << u_id << std::endl;
         }
     } catch (const char* msg) {
