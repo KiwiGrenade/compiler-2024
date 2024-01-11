@@ -1,11 +1,15 @@
 #include "handlers.hpp"
 #include "CodeBlock.hpp"
 #include "types.hpp"
+#include "Logger.hpp"
 
 size_t curr_vertex_id = 0;
 std::vector<CodeBlock> AST::vertices;
 std::vector<EdgeProvider> providers;
 std::vector<ident> procedures;
+std::map<int, std::string> AST::head_map;
+Architecture AST::architecture;
+Logger::Logger logger = Logger::Logger("logs.log");
 
 // void chuj() {
 //     std::cout << "chuj" << std::endl;
@@ -162,7 +166,7 @@ ident handleWhile(ident CONDITION_ID, ident COMMANDS_ID) {
     AST::add_edge(providers[comms_id]._end_id, providers[cond_id]._begin_id);
     AST::add_edge(providers[cond_id]._begin_id, curr_vertex_id, false);
 
-    AST::get_vertex(providers[cond_id]._begin_id)->instructions[0]._while_cond = true;
+    AST::get_vertex(providers[cond_id]._begin_id).instructions[0]._while_cond = true;
     
     EdgeProvider provider;
     provider._begin_id = providers[cond_id]._begin_id;
@@ -176,7 +180,37 @@ ident handleWhile(ident CONDITION_ID, ident COMMANDS_ID) {
 //TODO: check if this is right
 ident handleAssignment(ident IDENTIFIER_ID, ident EXPRESSION_ID) {
     int expr_id = stoi(EXPRESSION_ID);
-    AST::get_vertex(providers[expr_id]._begin_id)->instructions[0].left = Value(IDENTIFIER_ID);
-    AST::get_vertex(providers[expr_id]._begin_id)->instructions[0].type_of_instruction = content_type::_ASS;
+    AST::get_vertex(providers[expr_id]._begin_id).instructions[0].left = Value(IDENTIFIER_ID);
+    AST::get_vertex(providers[expr_id]._begin_id).instructions[0].type_of_instruction = content_type::_ASS;
     return EXPRESSION_ID;
 }
+
+void handleMain1(){
+    // lt -> iterator to past-the-end object
+    auto lt = AST::head_map.end();
+    lt--;
+    lt->second = "main";
+}
+
+//TODO: add table handling
+void handleMain2(ident DECLARATIONS_ID, ident COMMANDS_ID){
+    printf("main detected\n");
+    ident tmp_decl = "";
+    
+    handleMain1();
+    
+    for (auto c : DECLARATIONS_ID) {
+        if(c == ',') {
+            AST::architecture.assert_var(tmp_decl, "main");
+            tmp_decl = "";
+        }
+        else {
+            tmp_decl += c;
+        }
+    }
+    // add var. declaration after last comma separation
+    AST::architecture.assert_var(tmp_decl, "main");
+
+}
+void handleProcedures1(ident PROCEDURES_ID, ident PROC_HEAD, ident COMMANDS_ID);
+void handleProcedures2(ident PROCEDURES_ID, ident PROC_HEAD, ident DECLARATIONS_ID, ident COMMANDS_ID);

@@ -63,22 +63,26 @@
     /* program all -> procedures + main body */
 program_all:
     procedures main
+;
 
     /* procedures -> 0 or more procedure */
 procedures:
-     procedures KW_PROCEDURE proc_head KW_IS declarations KW_IN commands KW_END
-    | procedures KW_PROCEDURE proc_head KW_IS KW_IN commands KW_END
-    | %empty
+     procedures KW_PROCEDURE proc_head KW_IS declarations KW_IN commands KW_END     {/*handleProcedures2($1, $3, $5, $7);*/}
+    | procedures KW_PROCEDURE proc_head KW_IS KW_IN commands KW_END                 {/*handleProcedures1($1, $3, $6);*/}
+    | %empty                                                                        {printf("no procedures\n");}
+;
 
     /* main - > (var declarations + commands) OR commands */
 main:
-    KW_PROGRAM KW_IS declarations KW_IN commands KW_END
-    | KW_PROGRAM KW_IS KW_IN commands KW_END
+    KW_PROGRAM KW_IS declarations KW_IN commands KW_END     {handleMain2($3, $5);}
+    | KW_PROGRAM KW_IS KW_IN commands KW_END                {handleMain1();}
+;
 
     /* commands -> one or more command */
 commands:
-    commands command
-    | command
+    commands command    {/*$$ = handleCommands($1, $2);*/}
+    | command           {$$ = $1;}
+;
 
     /* command -> self explenatory 
     assign,
@@ -100,29 +104,34 @@ command:
     | KW_WRITE value SEMICOLON                                      {$$ = handleWrite($2, content_type::_WRITE, "_WRITE");}
  
 proc_head:
-    pidentifier LPRNT args_decl RPRNT
+    pidentifier LPRNT args_decl RPRNT                   {$$ = $1 + $2 + $3 + $4;}
+;
 
 proc_call: 
-    pidentifier LPRNT args RPRNT
+    pidentifier LPRNT args RPRNT                        {$$ = $1 + $2 + $3 + $4;}
+;
 
     /*declarations -> one ore more ints or tables, separated by commas*/
 declarations:
-     declarations COMMA pidentifier
-    | declarations COMMA pidentifier LBRCKT num RBRCKT
-    | pidentifier
-    | pidentifier LBRCKT num RBRCKT
+     declarations COMMA pidentifier                     {$$ = $1 + $2 + $3;}
+    | declarations COMMA pidentifier LBRCKT num RBRCKT  {$$ = $1 + $2 + $3 + $4 + $5;}
+    | pidentifier                                       {$$ = $1;}
+    | pidentifier LBRCKT num RBRCKT                     {$$ = $1 + $2 + $3 + $4;}
+;
 
     /*args_decl -> one or more ints or tables, separated by commas (with T before tables)*/
 args_decl:
-     args_decl COMMA pidentifier
-    | args_decl COMMA KW_T pidentifier
-    | pidentifier
-    | KW_T pidentifier
-    
+     args_decl COMMA pidentifier        {$$ = $1 + $2 + $3;}
+    | args_decl COMMA KW_T pidentifier  {$$ = $1 + $2 + $3 + $4;}
+    | pidentifier                       {$$ = $1;}
+    | KW_T pidentifier                  {$$ = $1 + $2;}
+;
+
     /*args -> one or more ints or tables (without T) */
 args:
     args COMMA pidentifier  {$$ = $1 + $2 + $3;}
     | pidentifier           {$$ = $1;}
+;
 
     /*expression -> 1 OR 2 values*/
 expression:
@@ -132,6 +141,7 @@ expression:
     | value ASTERISK value  {$$ = handleExpression($1, operator_type::_MUL, $3);}
     | value FWSLASH value   {$$ = handleExpression($1, operator_type::_DIV, $3);}
     | value PERCENT value   {$$ = handleExpression($1, operator_type::_MOD, $3);}
+;
 
     /*condition -> 2 values*/
 condition:
@@ -141,18 +151,20 @@ condition:
     | value LESS value          {$$ = handleCondition($1, operator_type::_LLESS, $3);}
     | value MOREOREQUAL value   {$$ = handleCondition($1, operator_type::_LHEQ, $3);}
     | value LESSOREQUAL value   {$$ = handleCondition($1, operator_type::_LLEQ, $3);}
+;
 
     /*value -> number or identifier( -> variable or table)*/
 value:
     num             {$$ = $1;}       
     | identifier    {$$ = $1;}
+;
 
 identifier: 
     /*identifier( -> variable or table)*/
     pidentifier                                 {$$ = $1;}
     | pidentifier LBRCKT num RBRCKT             {$$ = $1;}
     | pidentifier LBRCKT pidentifier RBRCKT     {$$ = $1;}
-
+;
 %%
 void yyerror(const char *string)
 {
