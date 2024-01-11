@@ -132,8 +132,8 @@ class CodeBlock {
         
         CodeBlock(){}
         CodeBlock(int _id) :id(_id) {
-            next_true= nullptr;
-            next_false= nullptr;
+            next_true = nullptr;
+            next_false = nullptr;
             next_true_id = -1;
             next_false_id = -1;
         }

@@ -6,13 +6,13 @@
 #include <memory>
 
 typedef std::string ident;
+#define ptr(type) std::shared_ptr<type>
+#define new_ptr(type, ...) std::make_shared<type>(__VA_ARGS__)
 
 #include "CodeBlock.hpp"
 #include "handlers.hpp"
 #include "grammar.hpp"
 
-#define ptr(type) std::shared_ptr<type>
-#define new_ptr(type, ...) std::make_shared<type>(__VA_ARGS__)
 
 extern int yylex();
 extern "C" int yywrap();
