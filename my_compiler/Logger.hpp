@@ -20,7 +20,7 @@ public:
     }
     
     void LOG(std::string message) {
-        log_stream << message << '\n';
+        log_stream << "[LOG]" << message << '\n';
     }
 
 };
