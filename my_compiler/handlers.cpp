@@ -3,17 +3,19 @@
 #include "types.hpp"
 #include "Logger.hpp"
 
-size_t curr_vertex_id = 0;
-std::vector<CodeBlock> AST::vertices;
-std::vector<EdgeProvider> providers;
-std::vector<ident> procedures;
-std::map<int, std::string> AST::head_map;
-Architecture AST::architecture;
-Logger::Logger logger = Logger::Logger("logs.log");
-
+bool                        head_sig;
+size_t                      curr_vertex_id = 0;
+std::vector<CodeBlock>      AST::vertices;
+std::vector<EdgeProvider>   providers;
+std::vector<ident>          procedures;
+std::map<int, std::string>  AST::head_map;
+Architecture                AST::architecture;
+Logger::Logger logger =     Logger::Logger("logs.log");
 // void chuj() {
 //     std::cout << "chuj" << std::endl;
 // }
+
+void add_head()
 
 ident handleCondition(ident VAL1, int INS_TYPE, ident VAL2) {
     AST::add_vertex(curr_vertex_id);
@@ -187,6 +189,10 @@ ident handleAssignment(ident IDENTIFIER_ID, ident EXPRESSION_ID) {
 
 void handleMain1(){
     // lt -> iterator to past-the-end object
+    if(AST::head_map.empty()) {
+        std::cerr << "head_map is empty!";
+        return;
+    }
     auto lt = AST::head_map.end();
     lt--;
     lt->second = "main";
