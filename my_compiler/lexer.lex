@@ -11,26 +11,26 @@ newline         \n|\r|\n\r
 %%
 
 ";"     { return SEMICOLON; }
-","     { return COMMA; }
-"("     { return LPRNT; }
-")"     { return RPRNT; }
-"["     { return LBRCKT; }
-"]"     { return RBRCKT; }
+","     { yylval = std::string(yytext); return COMMA; }
+"("     { yylval = std::string(yytext); return LPRNT; }
+")"     { yylval = std::string(yytext); return RPRNT; }
+"["     { yylval = std::string(yytext); return LBRCKT; }
+"]"     { yylval = std::string(yytext); return RBRCKT; }
 
-":="    { return ASSIGN; }
+":="    { yylval = std::string(yytext); return ASSIGN; }
 
-"+"     { return PLUS; }
-"-"     { return MINUS; }
-"*"     { return ASTERISK; }
-"/"      { return FWSLASH; }
-"%"     { return PERCENT; }
+"+"     { yylval = std::string(yytext); return PLUS; }
+"-"     { yylval = std::string(yytext); return MINUS; }
+"*"     { yylval = std::string(yytext); return ASTERISK; }
+"/"     { yylval = std::string(yytext); return FWSLASH; }
+"%"     { yylval = std::string(yytext); return PERCENT; }
 
-"="     { return EQUAL; }
-"!="    { return NEQUAL; }
-">"     { return MORE; }
-"<"     { return LESS; }
-">="    { return MOREOREQUAL; }
-"<="    { return LESSOREQUAL; }
+"="     { yylval = std::string(yytext); return EQUAL; }
+"!="    { yylval = std::string(yytext); return NEQUAL; }
+">"     { yylval = std::string(yytext); return MORE; }
+"<"     { yylval = std::string(yytext); return LESS; }
+">="    { yylval = std::string(yytext); return MOREOREQUAL; }
+"<="    { yylval = std::string(yytext); return LESSOREQUAL; }
 
         
 {comment}      { /*ignore comments*/ }

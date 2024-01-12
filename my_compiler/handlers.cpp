@@ -12,22 +12,19 @@ std::map<int, std::string>  AST::head_map;
 Architecture                AST::architecture;
 std::vector<int>            AST::head_ids;
 Logger::Logger logger =     Logger::Logger("logs.log");
-// void chuj() {
-//     std::cout << "chuj" << std::endl;
-// }
 
 void set_head() {
     if (head_sig) {
         AST::head_ids.push_back(curr_vertex_id);
         AST::head_map[curr_vertex_id] = "";
-        std::string log_msg = "&&&codeblock glowa z id:" + std::to_string(curr_vertex_id); 
+        std::string log_msg = "Codeblock glowa z id:" + std::to_string(curr_vertex_id); 
         logger.LOG(log_msg);
     }
     head_sig = 0;
 }
 
-void handleProcedures1(ident PROCEDURES_ID, ident PROC_HEAD, ident COMMANDS_ID);
 void handleProcedures2(ident PROCEDURES_ID, ident PROC_HEAD, ident DECLARATIONS_ID, ident COMMANDS_ID);
+void handleProcedures1(ident PROCEDURES_ID, ident PROC_HEAD, ident COMMANDS_ID);
 
 //TODO: add table handling
 void handleMain2(ident DECLARATIONS_ID, ident COMMANDS_ID){
@@ -39,6 +36,7 @@ void handleMain2(ident DECLARATIONS_ID, ident COMMANDS_ID){
     for (auto c : DECLARATIONS_ID) {
         if(c == ',') {
             AST::architecture.assert_var(tmp_decl, "main");
+            logger.LOG("Dodano zmienna: " + tmp_decl + "---> main");
             tmp_decl = "";
         }
         else {
@@ -47,7 +45,7 @@ void handleMain2(ident DECLARATIONS_ID, ident COMMANDS_ID){
     }
     // add var. declaration after last comma separation
     AST::architecture.assert_var(tmp_decl, "main");
-
+    logger.LOG("Dodano zmienna: " + tmp_decl + "---> main");
 }
 
 void handleMain1(){
@@ -58,14 +56,42 @@ void handleMain1(){
     }
     auto lt = AST::head_map.end();
     lt--;
-    lt->second = "main";
+    int index = lt->first;
+    AST::head_map[index] = "main";
+}
+
+ident handleCommands(ident COMMANDS_ID, ident NEXT_COMMAND_ID) {
+    int comms_id = std::stoi(COMMANDS_ID);
+    int next_comm_id = std::stoi(NEXT_COMMAND_ID);
+
+    int comms_end_id = providers[comms_id]._end_id;
+    int next_comm_begin_id = providers[next_comm_id]._begin_id;
+    
+    AST::add_edge(comms_end_id, next_comm_begin_id);
+
+    EdgeProvider provider;
+    provider._begin_id = providers[comms_id]._begin_id;
+    provider._end_id = providers[next_comm_id]._end_id;
+    providers.push_back(provider);
+ 
+    //LOGS
+    std::string log_msg = "dodano krawedz: true(" + std::to_string(comms_end_id) + ", " + std::to_string(next_comm_begin_id) + ")";
+    logger.LOG(log_msg);
+
+    curr_vertex_id++;
+    return std::to_string(curr_vertex_id - 1);          
 }
 
 //TODO: check if this is right
 ident handleAssignment(ident IDENTIFIER_ID, ident EXPRESSION_ID) {
+    // TODO: delete set_head?
+    set_head();
+    
     int expr_id = stoi(EXPRESSION_ID);
     AST::get_vertex(providers[expr_id]._begin_id).instructions[0].left = Value(IDENTIFIER_ID);
     AST::get_vertex(providers[expr_id]._begin_id).instructions[0].type_of_instruction = content_type::_ASS;
+    logger.LOG("ASSIGNMENT: " + IDENTIFIER_ID + ":=" + EXPRESSION_ID);
+    
     return EXPRESSION_ID;
 }
 
@@ -77,16 +103,32 @@ ident handleIfElse(ident CONDITION_ID, ident IF_COMMANDS_ID, ident ELSE_COMMANDS
     AST::add_vertex(curr_vertex_id);
     AST::vertices[AST::vertices.size() - 1].empty = 1;
 
+    int cond_begin_id = providers[cond_id]._begin_id;
+
+    int if_comms_begin_id = providers[if_comms_id]._begin_id;
+    int if_comms_end_id = providers[if_comms_id]._end_id;
+    
+    int el_comms_begin_id = providers[el_comms_id]._begin_id;
+    int el_comms_end_id = providers[el_comms_id]._end_id;
+    
     //TODO: this may be problematic
-    AST::add_edge(providers[cond_id]._begin_id, providers[if_comms_id]._begin_id, true);
-    AST::add_edge(providers[cond_id]._begin_id, providers[el_comms_id]._begin_id, false);
-    AST::add_edge(providers[if_comms_id]._end_id, curr_vertex_id);
-    AST::add_edge(providers[el_comms_id]._end_id, curr_vertex_id);
+    AST::add_edge(cond_begin_id, if_comms_begin_id, true);
+    AST::add_edge(cond_begin_id, el_comms_begin_id, false);
+    AST::add_edge(if_comms_end_id, curr_vertex_id);
+    AST::add_edge(el_comms_end_id, curr_vertex_id);
 
     EdgeProvider provider;
     provider._begin_id = providers[cond_id]._begin_id;
     provider._end_id = curr_vertex_id;
     providers.push_back(provider);
+
+    // LOGS
+    std::string log_msg = "################# IF_ELSE #################\n";
+    log_msg += "dodano krawedz: true(" + std::to_string(cond_begin_id) + ", " + std::to_string(if_comms_begin_id) + ")\n";
+    log_msg +=  "dodano krawedz: false(" + std::to_string(cond_begin_id) + ", " + std::to_string(el_comms_begin_id) + ")\n";
+    log_msg +=  "dodano krawedz: true(" + std::to_string(if_comms_end_id) + ", " + std::to_string(curr_vertex_id) + ")\n";
+    log_msg +=  "dodano krawedz: true(" + std::to_string(el_comms_end_id) + ", " + std::to_string(curr_vertex_id) + ")";
+    logger.LOG(log_msg);
 
     curr_vertex_id++;
     return std::to_string(curr_vertex_id - 1);   
@@ -99,14 +141,25 @@ ident handleIf(ident CONDITION_ID, ident COMMANDS_ID) {
     AST::add_vertex(curr_vertex_id);
     AST::vertices[AST::vertices.size() - 1].empty = 1;
 
-    AST::add_edge(providers[cond_id]._begin_id, providers[comms_id]._begin_id, true);
-    AST::add_edge(providers[cond_id]._begin_id, curr_vertex_id, false);
-    AST::add_edge(providers[comms_id]._end_id, curr_vertex_id, true);
+    int cond_begin_id = providers[cond_id]._begin_id;
+    int comms_begin_id = providers[comms_id]._begin_id;
+    int comms_end_id = providers[comms_id]._end_id;
+    
+    AST::add_edge(cond_begin_id, comms_begin_id, true);
+    AST::add_edge(cond_begin_id, curr_vertex_id, false);
+    AST::add_edge(comms_end_id, curr_vertex_id);
     
     EdgeProvider provider;
     provider._begin_id = providers[cond_id]._begin_id;
     provider._end_id = curr_vertex_id;
     providers.push_back(provider);
+
+    // LOGS
+    std::string log_msg = "################# IF #################\n";
+    log_msg += "dodano krawedz: true(" + std::to_string(cond_begin_id) + ", " + std::to_string(comms_begin_id) + ")\n";
+    log_msg +=  "dodano krawedz: false(" + std::to_string(cond_begin_id) + ", " + std::to_string(curr_vertex_id) + ")\n";
+    log_msg +=  "dodano krawedz: true(" + std::to_string(comms_end_id) + ", " + std::to_string(curr_vertex_id) + ")\n";
+    logger.LOG(log_msg);
 
     curr_vertex_id++;
     return std::to_string(curr_vertex_id - 1);
@@ -119,9 +172,13 @@ ident handleWhile(ident CONDITION_ID, ident COMMANDS_ID) {
     AST::add_vertex(curr_vertex_id);
     AST::vertices[AST::vertices.size() - 1].empty = 1;
 
-    AST::add_edge(providers[cond_id]._begin_id, providers[comms_id]._begin_id, true);
-    AST::add_edge(providers[comms_id]._end_id, providers[cond_id]._begin_id);
-    AST::add_edge(providers[cond_id]._begin_id, curr_vertex_id, false);
+    int cond_begin_id = providers[cond_id]._begin_id;
+    int comms_begin_id = providers[comms_id]._begin_id;
+    int comms_end_id = providers[comms_id]._end_id;
+
+    AST::add_edge(cond_begin_id, comms_begin_id, true);
+    AST::add_edge(comms_end_id, cond_begin_id);
+    AST::add_edge(cond_begin_id, curr_vertex_id, false);
 
     AST::get_vertex(providers[cond_id]._begin_id).instructions[0]._while_cond = true;
     
@@ -129,7 +186,13 @@ ident handleWhile(ident CONDITION_ID, ident COMMANDS_ID) {
     provider._begin_id = providers[cond_id]._begin_id;
     provider._end_id = curr_vertex_id;
     providers.push_back(provider);
-
+    
+    // LOGS
+    std::string log_msg = "################# WHILE #################\n";
+    log_msg += "dodano krawedz: true(" + std::to_string(cond_begin_id) + ", " + std::to_string(comms_begin_id) + ")\n";
+    log_msg +=  "dodano krawedz: true(" + std::to_string(comms_end_id) + ", " + std::to_string(cond_begin_id) + ")\n";
+    log_msg +=  "dodano krawedz: false(" + std::to_string(cond_begin_id) + ", " + std::to_string(curr_vertex_id) + ")\n";
+    logger.LOG(log_msg);
     curr_vertex_id++;
     return std::to_string(curr_vertex_id - 1);
 }
@@ -141,10 +204,20 @@ ident handleRepeat(ident COMMANDS_ID, ident CONDITION_ID) {
     AST::add_vertex(curr_vertex_id);
     AST::vertices[AST::vertices.size() - 1].empty = 1;
 
-    AST::add_edge(providers[comms_id]._end_id, providers[cond_id]._end_id);
-    AST::add_edge(providers[cond_id]._end_id, providers[comms_id]._end_id, false);
-    AST::add_edge(providers[comms_id]._end_id, curr_vertex_id, true);
+    int cond_begin_id = providers[cond_id]._begin_id;
+    int cond_end_id = providers[cond_id]._end_id;
+    int comms_begin_id = providers[comms_id]._begin_id;
+    int comms_end_id = providers[comms_id]._end_id;
+
+    AST::add_edge(comms_end_id, cond_begin_id);
+    AST::add_edge(cond_end_id, comms_begin_id, false);
+    AST::add_edge(comms_end_id, curr_vertex_id, true);
     
+    std::string log_msg = "################# REPEAT #################\n";
+    log_msg += "dodano krawedz: true(" + std::to_string(comms_end_id) + ", " + std::to_string(cond_begin_id) + ")\n";
+    log_msg +=  "dodano krawedz: false(" + std::to_string(cond_end_id) + ", " + std::to_string(comms_begin_id) + ")\n";
+    log_msg +=  "dodano krawedz: true(" + std::to_string(comms_end_id) + ", " + std::to_string(curr_vertex_id) + ")\n";
+
     EdgeProvider provider;
     provider._begin_id = providers[cond_id]._begin_id;
     providers.push_back(provider);
@@ -187,6 +260,7 @@ ident handleProcCall(ident PROC_CALL) {
     for (auto p : procedures) {
         if(p == proc_name) { 
             instruction.proc_id = proc_name;
+            logger.LOG("Znaleziono procedure: " + proc_name);
             AST::add_vertex(curr_vertex_id);
             AST::vertices[AST::vertices.size() - 1].instructions.push_back(instruction);
             
@@ -199,10 +273,11 @@ ident handleProcCall(ident PROC_CALL) {
             return std::to_string(curr_vertex_id - 1);
         }
     }
+    logger.LOG("Nie znaleziono procedury: " + proc_name);
     return "no procedure found";
 }
 
-ident handleCondition(ident VAL1, int INS_TYPE, ident VAL2) {
+ident handleCondition(ident VAL1, ident OP, int INS_TYPE, ident VAL2) {
     set_head();
 
     AST::add_vertex(curr_vertex_id);
@@ -221,8 +296,12 @@ ident handleCondition(ident VAL1, int INS_TYPE, ident VAL2) {
     
     // add instructions to added vertex
     AST::vertices[AST::vertices.size() - 1].instructions.push_back(instruction);
-    logger.LOG("@@@condition: " + instruction.left.name + " <= " + instruction.right.name +"---->"
-         + std::to_string(instruction.type_of_instruction));
+
+    std::string log_msg_head = Instruction::get_ins_log_header(instruction.type_of_instruction);
+
+    //TODO: expand logging here
+    logger.LOG(log_msg_head + instruction.left.name + OP + instruction.right.name + " ----> "
+         + std::to_string(curr_vertex_id));
     
     EdgeProvider provider;
     provider.set_begin_id(curr_vertex_id);

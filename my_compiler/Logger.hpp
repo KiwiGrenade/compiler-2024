@@ -11,7 +11,7 @@ class Logger {
     std::string file_name;
     std::ofstream log_stream;
     
-public: 
+public:
     Logger(std::string _file_name) : file_name(_file_name) {
         log_stream.open(file_name);
     }

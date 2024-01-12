@@ -56,22 +56,12 @@ enum operator_type {
     _MOD = 9,
     _EQ = 10,
     _NEQ = 11,
-    _LLEQ = 12,
-    _LHEQ = 13,
-    _LLESS = 14,
-    _LMORE = 15,
+    _LESSOREQUAL = 12,
+    _MOREOREQUAL = 13,
+    _LESS = 14,
+    _MORE = 15,
     _NONE = 0
 } ;
-
-//
-// struct Expression {
-//     operator_type type;
-//     Value left;
-//     Value right;
-//     // std::string exp_to_string() {
-//     //     return "%%%exp---->" + left.val_to_string() + "____" + std::to_string(type_of_operator) + "____" + right.val_to_string();
-//     // }
-// };
 
 struct Instruction {
     bool _while_cond = false;
@@ -84,6 +74,16 @@ struct Instruction {
     std::string proc_id;
 
     Instruction() = default;
+
+    static std::string get_ins_log_header(int ins_type)
+    {   
+        if(ins_type >= 5 && ins_type <= 9) 
+            return "EXPRESSION: ";
+        else if(ins_type >= 10 && ins_type <= 15)
+            return "CONDITION: ";
+        else 
+            return "COMMAND: ";
+    }
 
     std::string to_asm() {
         //switch (type_of_instruction) {

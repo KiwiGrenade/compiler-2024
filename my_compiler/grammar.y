@@ -80,7 +80,7 @@ main:
 
     /* commands -> one or more command */
 commands:
-    commands command    {/*$$ = handleCommands($1, $2);*/}
+    commands command    {$$ = handleCommands($1, $2);}
     | command           {$$ = $1;}
 ;
 
@@ -100,8 +100,8 @@ command:
     | KW_WHILE condition KW_DO commands KW_ENDWHILE                 {$$ = handleWhile($2, $4);}
     | KW_REPEAT commands KW_UNTIL condition SEMICOLON               {$$ = handleRepeat($2, $4);}
     | proc_call SEMICOLON                                           {$$ = handleProcCall($1);}
-    | KW_READ identifier SEMICOLON                                  {$$ = handleRead($2, content_type::_READ, "_READ");}
-    | KW_WRITE value SEMICOLON                                      {$$ = handleWrite($2, content_type::_WRITE, "_WRITE");}
+    | KW_READ identifier SEMICOLON                                  {$$ = handleRead("", "READ", content_type::_READ, $2);}
+    | KW_WRITE value SEMICOLON                                      {$$ = handleWrite("", "WRITE", content_type::_WRITE, $2);}
  
 proc_head:
     pidentifier LPRNT args_decl RPRNT                   {$$ = $1 + $2 + $3 + $4;}
@@ -132,22 +132,22 @@ args:
 ;
     /*expression -> 1 OR 2 values*/
 expression:
-    value                   {$$ = handleExpression($1, operator_type::_NONE, "_NONE");}
-    | value PLUS value      {$$ = handleExpression($1, operator_type::_ADD, $3);}
-    | value MINUS value     {$$ = handleExpression($1, operator_type::_SUB, $3);}
-    | value ASTERISK value  {$$ = handleExpression($1, operator_type::_MUL, $3);}
-    | value FWSLASH value   {$$ = handleExpression($1, operator_type::_DIV, $3);}
-    | value PERCENT value   {$$ = handleExpression($1, operator_type::_MOD, $3);}
+    value                   {$$ = handleExpression($1, "NONE", operator_type::_NONE, "");}
+    | value PLUS value      {$$ = handleExpression($1, $2, operator_type::_ADD, $3);}
+    | value MINUS value     {$$ = handleExpression($1, $2, operator_type::_SUB, $3);}
+    | value ASTERISK value  {$$ = handleExpression($1, $2, operator_type::_MUL, $3);}
+    | value FWSLASH value   {$$ = handleExpression($1, $2, operator_type::_DIV, $3);}
+    | value PERCENT value   {$$ = handleExpression($1, $2, operator_type::_MOD, $3);}
 ;
 
     /*condition -> 2 values*/
 condition:
-    value EQUAL value           {$$ = handleCondition($1, operator_type::_EQ, $3);}
-    | value NEQUAL value        {$$ = handleCondition($1, operator_type::_NEQ, $3);}
-    | value MORE value          {$$ = handleCondition($1, operator_type::_LMORE, $3);}
-    | value LESS value          {$$ = handleCondition($1, operator_type::_LLESS, $3);}
-    | value MOREOREQUAL value   {$$ = handleCondition($1, operator_type::_LHEQ, $3);}
-    | value LESSOREQUAL value   {$$ = handleCondition($1, operator_type::_LLEQ, $3);}
+    value EQUAL value           {$$ = handleCondition($1, $2, operator_type::_EQ, $3);}
+    | value NEQUAL value        {$$ = handleCondition($1, $2, operator_type::_NEQ, $3);}
+    | value MORE value          {$$ = handleCondition($1, $2, operator_type::_MORE, $3);}
+    | value LESS value          {$$ = handleCondition($1, $2, operator_type::_LESS, $3);}
+    | value MOREOREQUAL value   {$$ = handleCondition($1, $2, operator_type::_MOREOREQUAL, $3);}
+    | value LESSOREQUAL value   {$$ = handleCondition($1, $2, operator_type::_LESSOREQUAL, $3);}
 ;
 
     /*value -> number or identifier( -> variable or table)*/
