@@ -114,25 +114,22 @@ proc_call:
     /*declarations -> one ore more ints or tables, separated by commas*/
 declarations:
      declarations COMMA pidentifier                     {$$ = $1 + $2 + $3;}
-    | declarations COMMA pidentifier LBRCKT num RBRCKT  {$$ = $1 + $2 + $3 + $4 + $5;}
+    | declarations COMMA pidentifier LBRCKT num RBRCKT  {$$ = $1 + $2 + $3 + $4 + $5 + $6;}
     | pidentifier                                       {$$ = $1;}
     | pidentifier LBRCKT num RBRCKT                     {$$ = $1 + $2 + $3 + $4;}
 ;
-
     /*args_decl -> one or more ints or tables, separated by commas (with T before tables)*/
 args_decl:
      args_decl COMMA pidentifier        {$$ = $1 + $2 + $3;}
     | args_decl COMMA KW_T pidentifier  {$$ = $1 + $2 + $3 + $4;}
     | pidentifier                       {$$ = $1;}
     | KW_T pidentifier                  {$$ = $1 + $2;}
-;
-
+;   
     /*args -> one or more ints or tables (without T) */
 args:
     args COMMA pidentifier  {$$ = $1 + $2 + $3;}
     | pidentifier           {$$ = $1;}
 ;
-
     /*expression -> 1 OR 2 values*/
 expression:
     value                   {$$ = handleExpression($1, operator_type::_NONE, "_NONE");}
