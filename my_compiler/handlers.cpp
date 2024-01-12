@@ -3,7 +3,7 @@
 #include "types.hpp"
 #include "Logger.hpp"
 
-bool                        head_sig;
+bool                        head_sig = true;
 size_t                      curr_vertex_id = 0;
 std::vector<CodeBlock>      AST::vertices;
 std::vector<EdgeProvider>   providers;
@@ -45,7 +45,7 @@ ident handleCondition(ident VAL1, int INS_TYPE, ident VAL2) {
     
     // add instructions to added vertex
     AST::vertices[AST::vertices.size() - 1].instructions.push_back(instruction);
-    logger.LOG("@@@condition: " + instruction.left.load + " <= " + instruction.right.load +"---->"
+    logger.LOG("@@@condition: " + instruction.left.name + " <= " + instruction.right.name +"---->"
          + std::to_string(instruction.type_of_instruction));
     
     EdgeProvider provider;
@@ -121,6 +121,7 @@ ident handleIfElse(ident CONDITION_ID, ident IF_COMMANDS_ID, ident ELSE_COMMANDS
 
 
 ident handleProcCall(ident PROC_CALL) {
+    set_head();
     ident proc_name;
     ident tmp_arg_name;
     Instruction instruction;
