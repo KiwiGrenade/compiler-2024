@@ -34,15 +34,17 @@ struct Architecture {
     }
 };
 struct AST {
-    static std::vector<CodeBlock> vertices;
+    static std::vector<int>             head_ids;
+    static std::map<int, std::string>   head_map;
+    static std::vector<CodeBlock>       vertices;
+    static Architecture                 architecture;
+
     static void add_vertex(size_t id);
     static void add_edge(int v_id, int u_id);
     static void add_edge(int v_id, int u_id, bool flag);
     static CodeBlock& get_vertex(int id);
-    static std::map<int, std::string> head_map;
-    static Architecture architecture;
-    
     virtual ~AST() = default;
+
 };
 
 // enum table_ref_type {

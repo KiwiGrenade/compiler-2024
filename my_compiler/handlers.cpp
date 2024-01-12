@@ -10,14 +10,25 @@ std::vector<EdgeProvider>   providers;
 std::vector<ident>          procedures;
 std::map<int, std::string>  AST::head_map;
 Architecture                AST::architecture;
+std::vector<int>            AST::head_ids;
 Logger::Logger logger =     Logger::Logger("logs.log");
 // void chuj() {
 //     std::cout << "chuj" << std::endl;
 // }
 
-void add_head()
+void set_head() {
+    if (head_sig) {
+        AST::head_ids.push_back(curr_vertex_id);
+        AST::head_map[curr_vertex_id] = "";
+        std::string log_msg = "&&&codeblock glowa z id:" + std::to_string(curr_vertex_id); 
+        logger.LOG(log_msg);
+    }
+    head_sig = 0;
+}
 
 ident handleCondition(ident VAL1, int INS_TYPE, ident VAL2) {
+    set_head();
+
     AST::add_vertex(curr_vertex_id);
 
     Instruction instruction;
@@ -34,8 +45,8 @@ ident handleCondition(ident VAL1, int INS_TYPE, ident VAL2) {
     
     // add instructions to added vertex
     AST::vertices[AST::vertices.size() - 1].instructions.push_back(instruction);
-    // logger.log("@@@condition: " + instruction.left.load + " <= " + instruction.right.load +"---->"
-    //      + std::to_string(instruction.type_of_instruction));
+    logger.LOG("@@@condition: " + instruction.left.load + " <= " + instruction.right.load +"---->"
+         + std::to_string(instruction.type_of_instruction));
     
     EdgeProvider provider;
     provider.set_begin_id(curr_vertex_id);
