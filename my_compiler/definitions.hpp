@@ -17,13 +17,15 @@ typedef std::string ident;
 #include "handlers.hpp"
 #include "grammar.hpp"
 
-
-extern int yylex();
 extern "C" int yywrap();
 void yyerror(const char* string);
 int yylex();
 int yyparse();
 
+void error(std::string msg, bool fatal);
+void warning(std::string msg);
+
+#include "map"
 
 // void chuj();
 extern size_t currLine;
