@@ -15,8 +15,10 @@ enum State {
 struct Register {
     int id;
     State state;
+    bool is_argument = false;
     
     Register(int _id) : id(_id), state(_UNLOCKED) {};
+    Register(int _id, bool STUD) : id(_id), is_argument(true), state(_UNLOCKED){};
 };
 
 struct Memory {
@@ -31,6 +33,14 @@ struct Architecture {
     void assert_var(ident var_id, ident proc_id){
         procedures_memory[proc_id].variables[var_id] = new_ptr(Register, var_p);
         var_p++;
+    }
+    void assert_arg(ident arg_id, ident proc_id) {
+        procedures_memory[proc_id].variables[arg_id] = new_ptr(Register, var_p, "arg");
+        procedures_memory[proc_id].arg_ids.push_back(arg_id);
+        var_p++;
+    }
+    void assert_ret_reg(std::string proc_id) {
+        procedures_memory[proc_id].ret_reg = new_ptr(Register, var_p);
     }
 };
 struct AST {
