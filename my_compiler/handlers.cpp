@@ -23,8 +23,25 @@ void set_head() {
     head_sig = 0;
 }
 
-void handleProcedures2(ident PROCEDURES_ID, ident PROC_HEAD, ident DECLARATIONS_ID, ident COMMANDS_ID);
-void handleProcedures1(ident PROCEDURES_ID, ident PROC_HEAD, ident COMMANDS_ID) {
+void handleProcedures2(ident PROCEDURES_ID, ident PROC_HEAD, ident DECLARATIONS_ID, ident COMMANDS_ID) {
+    ident proc_id = handleProcedures1(PROCEDURES_ID, PROC_HEAD, DECLARATIONS_ID);
+    std::string tmp_decl = "";
+    for(auto c : DECLARATIONS_ID) {
+        if(c == ',') {
+            AST::architecture.assert_var(tmp_decl, proc_id);
+            logger.LOG("Dodano zmienna: " + tmp_decl + " ---> " + proc_id);
+            tmp_decl = "";
+        }
+        else {
+            tmp_decl += c;
+        }
+    }
+
+    AST::architecture.assert_var(tmp_decl, proc_id);
+    logger.LOG("Dodano zmienna: " + tmp_decl + " ---> " + proc_id);
+    logger.LOG("PROCEDURE: definition of [[[" + proc_id + "]]]");
+}
+ident handleProcedures1(ident PROCEDURES_ID, ident PROC_HEAD, ident COMMANDS_ID) {
     head_sig = true;
     logger.LOG("to parse: " + PROC_HEAD);
     int n_args = 0;
@@ -55,6 +72,7 @@ void handleProcedures1(ident PROCEDURES_ID, ident PROC_HEAD, ident COMMANDS_ID) 
     // allocate memory for procedure
     proc_id += "_" + std::to_string(n_args);
     for(auto it : tmp_args) {
+        logger.LOG("argument procedury: " + proc_id + " o etykiecie: " + it);
         AST::architecture.assert_arg(it, proc_id);
     }
     AST::architecture.assert_ret_reg(proc_id);
@@ -67,6 +85,7 @@ void handleProcedures1(ident PROCEDURES_ID, ident PROC_HEAD, ident COMMANDS_ID) 
     int last = lt->first;
     AST::head_map[last] = proc_id;
     logger.LOG("PROCEDURE: definition of [" + proc_id + "]");
+    return proc_id;
 }
 
 //TODO: add table handling
@@ -89,6 +108,7 @@ void handleMain2(ident DECLARATIONS_ID, ident COMMANDS_ID){
     // add var. declaration after last comma separation
     AST::architecture.assert_var(tmp_decl, "main");
     logger.LOG("Dodano zmienna: " + tmp_decl + "---> main");
+    logger.LOG("DEFINITION: main");
 }
 
 void handleMain1(){
