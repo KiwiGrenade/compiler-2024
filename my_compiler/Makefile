@@ -21,4 +21,4 @@ types:
 	$(CXX) -c AST.cpp -o AST.o
 
 clean:
-	rm -f grammar.cpp grammar.hpp lexer.cpp lexer.o grammar.o handlers.o AST.o compiler
+	rm -f grammar.cpp grammar.hpp lexer.cpp lexer.o grammar.o handlers.o AST.o logs.log compiler
