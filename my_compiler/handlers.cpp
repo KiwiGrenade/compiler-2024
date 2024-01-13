@@ -24,7 +24,50 @@ void set_head() {
 }
 
 void handleProcedures2(ident PROCEDURES_ID, ident PROC_HEAD, ident DECLARATIONS_ID, ident COMMANDS_ID);
-void handleProcedures1(ident PROCEDURES_ID, ident PROC_HEAD, ident COMMANDS_ID);
+void handleProcedures1(ident PROCEDURES_ID, ident PROC_HEAD, ident COMMANDS_ID) {
+    head_sig = true;
+    logger.LOG("to parse: " + PROC_HEAD);
+    int n_args = 0;
+    ident tmp_id = "";
+    ident proc_id;
+    std::vector<ident> tmp_args;
+
+    // extract arguments and procedure identifier
+    bool is_procedure = false;
+    for(auto c : PROC_HEAD) {
+        if(is_procedure) {
+            if(c == ',') {
+                n_args++;
+                tmp_args.push_back(tmp_id);
+            }
+        }
+        else if (c == '(') {
+            is_procedure = true;
+            proc_id = tmp_id;
+        }
+        else if (c != ')'){
+            tmp_id += c;
+        }
+    }
+    tmp_args.push_back(tmp_id);
+    n_args++;
+    
+    // allocate memory for procedure
+    proc_id += "_" + std::to_string(n_args);
+    for(auto it : tmp_args) {
+        AST::architecture.assert_arg(it, proc_id);
+    }
+    AST::architecture.assert_ret_reg(proc_id);
+    procedures.push_back(proc_id);
+    //TODO: \/\/ necessary??
+    AST::architecture.assert_var(proc_id, proc_id);
+
+    auto lt = AST::head_map.end();
+    lt--;
+    int last = lt->first;
+    AST::head_map[last] = proc_id;
+    logger.LOG("PROCEDURE: definition of [" + proc_id + "]");
+}
 
 //TODO: add table handling
 void handleMain2(ident DECLARATIONS_ID, ident COMMANDS_ID){
@@ -228,7 +271,7 @@ ident handleRepeat(ident COMMANDS_ID, ident CONDITION_ID) {
 
 ident handleProcCall(ident PROC_CALL) {
     set_head();
-    ident proc_name;
+    ident proc_id;
     ident tmp_arg_name;
     Instruction instruction;
     instruction.type_of_instruction = content_type::_CALL;
@@ -250,17 +293,17 @@ ident handleProcCall(ident PROC_CALL) {
             }
         }
         else {
-            proc_name += c;
+            proc_id += c;
         }
     }
 
-    proc_name += '_' + std::to_string(instruction.args.size());
+    proc_id += '_' + std::to_string(instruction.args.size());
     
     //TODO: you can optimize this
     for (auto p : procedures) {
-        if(p == proc_name) { 
-            instruction.proc_id = proc_name;
-            logger.LOG("Znaleziono procedure: " + proc_name);
+        if(p == proc_id) { 
+            instruction.proc_id = proc_id;
+            logger.LOG("Znaleziono procedure: " + proc_id);
             AST::add_vertex(curr_vertex_id);
             AST::vertices[AST::vertices.size() - 1].instructions.push_back(instruction);
             
@@ -273,7 +316,7 @@ ident handleProcCall(ident PROC_CALL) {
             return std::to_string(curr_vertex_id - 1);
         }
     }
-    logger.LOG("Nie znaleziono procedury: " + proc_name);
+    logger.LOG("Nie znaleziono procedury: " + proc_id);
     return "no procedure found";
 }
 
