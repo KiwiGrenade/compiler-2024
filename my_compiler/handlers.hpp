@@ -4,7 +4,6 @@
 #include "definitions.hpp"
 #include "types.hpp"
 
-
 void handleProcedures2(ident PROCEDURES_ID, ident PROC_HEAD, ident DECLARATIONS_ID, ident COMMANDS_ID);
 ident handleProcedures1(ident PROCEDURES_ID, ident PROC_HEAD, ident COMMANDS_ID);
 
