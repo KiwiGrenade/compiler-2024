@@ -69,7 +69,7 @@ program_all:
 procedures:
      procedures KW_PROCEDURE proc_head KW_IS declarations KW_IN commands KW_END     {handleProcedures2($1, $3, $5, $7);}
     | procedures KW_PROCEDURE proc_head KW_IS KW_IN commands KW_END                 {handleProcedures1($1, $3, $6);}
-    | %empty                                                                        {printf("no procedures\n");}
+    | %empty                                                                        {}
 ;
 
     /* main - > (var declarations + commands) OR commands */
