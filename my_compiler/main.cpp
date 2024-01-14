@@ -2,7 +2,6 @@
 #include "definitions.hpp"
 
 
-
 bool is_verbose = false;
 bool is_success = true;
 bool is_parsing = true;
@@ -38,7 +37,8 @@ void yyerror(const char* yerror_msg) {
 int main(int argc, char* argv[])
 {
     FILE *pFILE_IN  = fopen(argv[1], "r");
-    FILE *pFILE_OUT = fopen(argv[2], "w");
+
+    std::string output_file = argv[2];
 
     if(!pFILE_IN)
     {
@@ -51,6 +51,7 @@ int main(int argc, char* argv[])
     yyparse();
 
     AST::translate_main();
+    AST::save_code(output_file);
 
     return 0;
 }

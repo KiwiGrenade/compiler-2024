@@ -2,6 +2,7 @@
 #define CODE_BLOCK_HPP
 #include <vector>
 #include <string>
+#include <map>
 
 enum value_type {
     NUM = 1,
@@ -115,8 +116,8 @@ class CodeBlock {
         std::string proc_id;
         std::vector<Instruction> instructions;
         
-        CodeBlock* next_true;
-        CodeBlock* next_false;
+        std::shared_ptr<CodeBlock> next_true;
+        std::shared_ptr<CodeBlock> next_false;
         
         CodeBlock(){}
         CodeBlock(int _id) :id(_id) {

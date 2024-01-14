@@ -4,6 +4,7 @@
 #include <map>
 #include <memory>
 #include <vector>
+#include <fstream>
 #include "CodeBlock.hpp"
 #include "definitions.hpp"
 #define logme_archt(str) { logme(str, "MEM")}
@@ -69,6 +70,7 @@ struct AsmInstruction {
 };
 
 struct AST {
+    // k in virtual machine
     static int                          instruction_pointer;
     static std::vector<int>             head_ids;
     static std::map<int, ident>         head_map;
@@ -83,8 +85,10 @@ struct AST {
     virtual ~AST() = default;
     // ASSEMBLER INSTRUCTIONS
     static void add_instruction(ptr(AsmInstruction) instr);
-    static void _asm_halt(ptr(CodeBlock));
+    static void _asm_halt(ptr(CodeBlock) cb);
+    static void translate_snippet(ptr(CodeBlock) cb);
     static void translate_main();
+    static void save_code(std::string file_name);
 };
 
 // enum table_ref_type {

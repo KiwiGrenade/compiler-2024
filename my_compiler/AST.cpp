@@ -1,10 +1,11 @@
 #include <iostream>
 #include <algorithm>
+#include <fstream>
 #include "AST.hpp"
 
 // std::vector<AsmInstruction> _asm_instructions;
-std::vector<ptr(AsmInstruction)>  AST::_asm_instructions;
-int                          AST::instruction_pointer = 0;
+int                                 AST::instruction_pointer = 0;
+std::vector<ptr(AsmInstruction)>    AST::_asm_instructions;
 
 
 std::string AST_log_head = "A";
@@ -43,6 +44,42 @@ void add_asm_instruction(ptr(AsmInstruction) i) {
     AST::instruction_pointer++;
 }
 
+void AST::translate_snippet(ptr(CodeBlock) cb){
+    logme_AST("Snippet translation: START");
+    if(cb == nullptr || cb->translated) {
+        return;
+    }
+    else {
+        cb->ip = instruction_pointer;
+        for(auto instruction : cb->instructions) {
+            // translate_ins(instruction, cb);
+        }
+        cb->translated = true;
+        
+        logme_AST("before if");
+        if(cb->next_true == nullptr) {
+            logme_AST("End of procedure: " + cb->proc_id) 
+            if (cb->proc_id == "main") {
+                _asm_halt(cb);
+            }
+            else {
+                // _asm_jump_i(cb);
+            }
+        }
+        else {
+            if (cb->empty) {
+                cb->translated = false;
+                // add_asm_instruction(new_ptr(AsmInstruction, "JUMP", cb->next_true, instruction_pointer))
+                logme_AST("My next is: " << cb->next_true->instructions[0].type_of_instruction);
+            }
+            logme_AST("after if")
+            translate_snippet(cb->next_true);
+            translate_snippet(cb->next_false);
+        }
+    }
+    logme_AST("Snippet translation: END");
+}
+
 void AST::translate_main() {
     logme_AST("Translate_main: START");
 
@@ -57,7 +94,7 @@ void AST::translate_main() {
         logme_AST("Translating head: " << it);
         auto head = get_vertex(it);
 
-        // translate_snippet(head);
+        translate_snippet(head);
         logme_AST("Translation of head: " << it << " END");
     }
 
@@ -66,4 +103,26 @@ void AST::translate_main() {
 
 void AST::_asm_halt(ptr(CodeBlock) cb) {
     add_asm_instruction(new_ptr(AsmInstruction, "HALT", instruction_pointer));
+}
+
+void AST::save_code(std::string file_name) {
+    std::ofstream output (file_name);
+    for (auto asmins : _asm_instructions) {
+        // if (asmins.jump_address == -1) {
+        //     if (asmins._register != nullptr) {
+        //         //log.log(std::to_string(asmins.ip) + "   " + asmins.code + "        " + std::to_string(asmins._register->id) + asmins.constant + asmins.label);
+        //         output <<  "   " + asmins.code + "        " + std::to_string(asmins.reg_id) + asmins.constant + asmins.label << std::endl;
+        //     } else {
+        //         //log.log(std::to_string(asmins.ip) + "   " + asmins.code + "        " +asmins.constant + asmins.label);
+        //                    output << "   " + asmins.code + "        " +asmins.constant + asmins.label << std::endl;;
+
+        //     }
+        // } else {
+        //         //log.log(std::to_string(asmins.ip) + "   " + asmins.code + "        " + std::to_string(asmins.jump_address) + asmins.constant + asmins.label);
+        //            output << "   " + asmins.code + "        " + std::to_string(asmins.jump_address) + asmins.constant + asmins.label << std::endl;
+
+        // }
+    }
+    output << "test chuja" << std::endl;
+    output.close();
 }
