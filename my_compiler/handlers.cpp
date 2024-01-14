@@ -8,7 +8,7 @@ size_t                      curr_vertex_id = 0;
 std::map<int, std::string>  AST::head_map;
 Architecture                AST::architecture;
 std::vector<int>            AST::head_ids;
-std::vector<CodeBlock>      AST::vertices;
+std::vector<ptr(CodeBlock)>      AST::vertices;
 
 std::vector<EdgeProvider>   providers;
 
@@ -165,8 +165,8 @@ ident handleCommands(ident COMMANDS_ID, ident NEXT_COMMAND_ID) {
 ident handleAssignment(ident IDENTIFIER_ID, ident EXPRESSION_ID) {
     
     int expr_id = stoi(EXPRESSION_ID);
-    AST::get_vertex(providers[expr_id]._begin_id).instructions[0].left = Value(IDENTIFIER_ID);
-    AST::get_vertex(providers[expr_id]._begin_id).instructions[0].type_of_instruction = content_type::_ASS;
+    AST::get_vertex(providers[expr_id]._begin_id)->instructions[0].left = Value(IDENTIFIER_ID);
+    AST::get_vertex(providers[expr_id]._begin_id)->instructions[0].type_of_instruction = content_type::_ASS;
     logme_handle("ASSIGNMENT: " + IDENTIFIER_ID + ":=" + EXPRESSION_ID);
     
     return EXPRESSION_ID;
@@ -180,7 +180,7 @@ ident handleIfElse(ident CONDITION_ID, ident IF_COMMANDS_ID, ident ELSE_COMMANDS
     logme_handle("HANDLE_IF_ELSE");
 
     AST::add_vertex(curr_vertex_id);
-    AST::vertices[AST::vertices.size() - 1].empty = 1;
+    AST::vertices[AST::vertices.size() - 1]->empty = 1;
 
     int cond_begin_id = providers[cond_id]._begin_id;
 
@@ -211,7 +211,7 @@ ident handleIf(ident CONDITION_ID, ident COMMANDS_ID) {
     logme_handle("################# IF #################");
     
     AST::add_vertex(curr_vertex_id);
-    AST::vertices[AST::vertices.size() - 1].empty = 1;
+    AST::vertices[AST::vertices.size() - 1]->empty = 1;
 
     int cond_begin_id = providers[cond_id]._begin_id;
     int comms_begin_id = providers[comms_id]._begin_id;
@@ -235,7 +235,7 @@ ident handleWhile(ident CONDITION_ID, ident COMMANDS_ID) {
     int comms_id = stoi(COMMANDS_ID);
     
     AST::add_vertex(curr_vertex_id);
-    AST::vertices[AST::vertices.size() - 1].empty = 1;
+    AST::vertices[AST::vertices.size() - 1]->empty = 1;
 
     int cond_begin_id = providers[cond_id]._begin_id;
     int comms_begin_id = providers[comms_id]._begin_id;
@@ -245,7 +245,7 @@ ident handleWhile(ident CONDITION_ID, ident COMMANDS_ID) {
     AST::add_edge(comms_end_id, cond_begin_id, true);
     AST::add_edge(cond_begin_id, curr_vertex_id, false);
 
-    AST::get_vertex(providers[cond_id]._begin_id).instructions[0]._while_cond = true;
+    AST::get_vertex(providers[cond_id]._begin_id)->instructions[0]._while_cond = true;
     
     providers.push_back(EdgeProvider(cond_begin_id, curr_vertex_id));
  
@@ -326,7 +326,7 @@ ident handleRepeat(ident COMMANDS_ID, ident CONDITION_ID) {
     int cond_id = stoi(CONDITION_ID);
     
     AST::add_vertex(curr_vertex_id);
-    AST::vertices[AST::vertices.size() - 1].empty = 1;
+    AST::vertices[AST::vertices.size() - 1]->empty = 1;
 
     int cond_begin_id = providers[cond_id]._begin_id;
     int cond_end_id = providers[cond_id]._end_id;
@@ -394,7 +394,7 @@ ident handleProcCall(ident PROC_CALL) {
     instruction.proc_id = proc_id;
     
     AST::add_vertex(curr_vertex_id);
-    AST::vertices[AST::vertices.size() - 1].instructions.push_back(instruction);
+    AST::vertices[AST::vertices.size() - 1]->instructions.push_back(instruction);
 
     providers.push_back(EdgeProvider(curr_vertex_id, curr_vertex_id));
 
@@ -422,7 +422,7 @@ ident handleCondition(ident VAL1, ident OP, int INS_TYPE, ident VAL2) {
     }
     
     // add instructions to added vertex
-    AST::vertices[AST::vertices.size() - 1].instructions.push_back(instruction);
+    AST::vertices[AST::vertices.size() - 1]->instructions.push_back(instruction);
 
     std::string log_msg_head = Instruction::get_ins_log_header(instruction.type_of_instruction);
 

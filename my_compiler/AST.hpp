@@ -72,14 +72,14 @@ struct AST {
     static int                          instruction_pointer;
     static std::vector<int>             head_ids;
     static std::map<int, ident>         head_map;
-    static std::vector<CodeBlock>       vertices;
+    static std::vector<ptr(CodeBlock)>       vertices;
     static Architecture                 architecture;
     static std::vector<ptr(AsmInstruction)>  _asm_instructions;
 
     static void add_vertex(size_t id);
     static void add_edge(int v_id, int u_id);
     static void add_edge(int v_id, int u_id, bool flag);
-    static CodeBlock& get_vertex(int id);
+    static ptr(CodeBlock) get_vertex(int id);
     virtual ~AST() = default;
     // ASSEMBLER INSTRUCTIONS
     static void add_instruction(ptr(AsmInstruction) instr);

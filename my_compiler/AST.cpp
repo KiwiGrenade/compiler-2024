@@ -10,9 +10,9 @@ int                          AST::instruction_pointer = 0;
 std::string AST_log_head = "A";
 #define logme_AST(str) { logme(str, AST_log_head) }
 
-CodeBlock& AST::get_vertex(int _id) {
-    for(CodeBlock& vert : AST::vertices){
-        if(vert.id == _id) {
+ptr(CodeBlock) AST::get_vertex(int _id) {
+    for(ptr(CodeBlock) vert : AST::vertices){
+        if(vert->id == _id) {
             return vert;
         }
     }
@@ -20,16 +20,16 @@ CodeBlock& AST::get_vertex(int _id) {
 }
 
 void AST::add_vertex(size_t id) {
-    vertices.push_back(CodeBlock(id));
+    vertices.push_back(new_ptr(CodeBlock, id));
 };
 
 void AST::add_edge(int v_id, int u_id, bool flag) {
     try {
         std::string str_flag;
         if (flag) {
-            AST::get_vertex(v_id).next_true_id = u_id;
+            AST::get_vertex(v_id)->next_true_id = u_id;
         } else {
-            AST::get_vertex(v_id).next_false_id = u_id;
+            AST::get_vertex(v_id)->next_false_id = u_id;
         }
         logme_AST("dodano krawedz: " + std::to_string(flag) + "(" + std::to_string(v_id) + ", " + std::to_string(u_id) + ")");
         // logger.LOG("dodano krawedz: " + std::to_string(flag) + "(" + std::to_string(v_id) + ", " + std::to_string(u_id) + ")\n");
