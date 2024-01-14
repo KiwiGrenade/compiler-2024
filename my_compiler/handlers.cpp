@@ -2,15 +2,16 @@
 #include "CodeBlock.hpp"
 #include "types.hpp"
 
-
 bool                        head_sig = true;
 size_t                      curr_vertex_id = 0;
-std::vector<CodeBlock>      AST::vertices;
-std::vector<EdgeProvider>   providers;
-std::vector<ident>          procedures;
+
 std::map<int, std::string>  AST::head_map;
 Architecture                AST::architecture;
 std::vector<int>            AST::head_ids;
+std::vector<CodeBlock>      AST::vertices;
+
+std::vector<EdgeProvider>   providers;
+std::vector<ident>          procedures;
 
 std::string log_head = "H"; // for handlers
 
@@ -27,7 +28,7 @@ void set_head() {
 }
 
 void handleProcedures2(ident PROCEDURES_ID, ident PROC_HEAD, ident DECLARATIONS_ID, ident COMMANDS_ID) {
-    ident proc_id = handleProcedures1(PROCEDURES_ID, PROC_HEAD, DECLARATIONS_ID);
+    ident proc_id = handleProcedures1(PROCEDURES_ID, PROC_HEAD, COMMANDS_ID);
     std::string tmp_decl = "";
     for(auto c : DECLARATIONS_ID) {
         if(c == ',') {
@@ -233,6 +234,11 @@ ident handleWhile(ident CONDITION_ID, ident COMMANDS_ID) {
 
     curr_vertex_id++;
     return std::to_string(curr_vertex_id - 1);
+}
+
+ident handleProcHead(ident PROC_NAME, ident ARGS_DECL){
+    std::cout << "chuj" << std::endl;
+    return PROC_NAME;
 }
 
 ident handleRepeat(ident COMMANDS_ID, ident CONDITION_ID) {

@@ -104,31 +104,31 @@ command:
     | KW_WRITE value SEMICOLON                                      {$$ = handleWrite("", "WRITE", content_type::_WRITE, $2);}
  
 proc_head:
-    pidentifier LPRNT args_decl RPRNT                   {$$ = $1 + $2 + $3 + $4;}
+    pidentifier LPRNT args_decl RPRNT                   {logme("proc_head", "[P]");$$ = handleProcHead($1, $3) + $2 + $3 + $4;}
 ;
 
 proc_call: 
-    pidentifier LPRNT args RPRNT                        {$$ = $1 + $2 + $3 + $4;}
+    pidentifier LPRNT args RPRNT                        {logme("proc_call", "[P]");$$ = $1 + $2 + $3 + $4;}
 ;
 
     /*declarations -> one ore more ints or tables, separated by commas*/
 declarations:
-     declarations COMMA pidentifier                     {$$ = $1 + $2 + $3;}
-    | declarations COMMA pidentifier LBRCKT num RBRCKT  {$$ = $1 + $2 + $3 + $4 + $5 + $6;}
-    | pidentifier                                       {$$ = $1;}
-    | pidentifier LBRCKT num RBRCKT                     {$$ = $1 + $2 + $3 + $4;}
+     declarations COMMA pidentifier                     {logme("declaration", "[P]");$$ = $1 + $2 + $3;}
+    | declarations COMMA pidentifier LBRCKT num RBRCKT  {logme("declaration", "[P]");$$ = $1 + $2 + $3 + $4 + $5 + $6;}
+    | pidentifier                                       {logme("declaration", "[P]");$$ = $1;}
+    | pidentifier LBRCKT num RBRCKT                     {logme("declaration", "[P]");$$ = $1 + $2 + $3 + $4;}
 ;
     /*args_decl -> one or more ints or tables, separated by commas (with T before tables)*/
 args_decl:
      args_decl COMMA pidentifier        {$$ = $1 + $2 + $3;}
-    | args_decl COMMA KW_T pidentifier  {$$ = $1 + $2 + $3 + $4;}
+    | args_decl COMMA KW_T pidentifier  {$$ = $1 + $2 + "T" + $4;}
     | pidentifier                       {$$ = $1;}
-    | KW_T pidentifier                  {$$ = $1 + $2;}
+    | KW_T pidentifier                  {$$ = "T" + $2;}
 ;   
     /*args -> one or more ints or tables (without T) */
 args:
-    args COMMA pidentifier  {$$ = $1 + $2 + $3;}
-    | pidentifier           {$$ = $1;}
+    args COMMA pidentifier  {logme("args", "[P]");$$ = $1 + $2 + $3;}
+    | pidentifier           {logme("args", "[P]");$$ = $1;}
 ;
     /*expression -> 1 OR 2 values*/
 expression:
@@ -163,31 +163,3 @@ identifier:
     | pidentifier LBRCKT pidentifier RBRCKT     {$$ = $1;}
 ;
 %%
-void yyerror(const char *string)
-{
-    std::cerr << "Error at line " << currLine << ": " << string << std::endl;
-}
-
-int yywrap()
-{
-    return 1;
-}
-
-int main(int argc, char* argv[])
-{
-    FILE *pFILE_IN  = fopen(argv[1], "r");
-    FILE *pFILE_OUT = fopen(argv[2], "w");
-
-    if(!pFILE_IN)
-    {
-        std::cerr << "ERROR: file " << argv[1] << " not found!" << std::endl;
-        return 1;
-    }
-
-    yyin = pFILE_IN;
-
-
-    yyparse();
-
-    return 0;
-}

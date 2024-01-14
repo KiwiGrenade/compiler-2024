@@ -30,6 +30,7 @@ struct Architecture {
     int var_p;
     std::map<ident, Memory> procedures_memory;
     
+
     void assert_var(ident var_id, ident proc_id){
         procedures_memory[proc_id].variables[var_id] = new_ptr(Register, var_p);
         var_p++;
@@ -39,13 +40,16 @@ struct Architecture {
         procedures_memory[proc_id].arg_ids.push_back(arg_id);
         var_p++;
     }
-    void assert_ret_reg(std::string proc_id) {
+    void assert_arg_T(ident tab_id, ident proc_id) {
+        warning("AST::Architecture::assert_arg_T() not implemented!");
+    }
+    void assert_ret_reg(ident proc_id) {
         procedures_memory[proc_id].ret_reg = new_ptr(Register, var_p);
     }
 };
 struct AST {
     static std::vector<int>             head_ids;
-    static std::map<int, std::string>   head_map;
+    static std::map<int, ident>         head_map;
     static std::vector<CodeBlock>       vertices;
     static Architecture                 architecture;
 
