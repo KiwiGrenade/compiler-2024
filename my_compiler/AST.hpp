@@ -6,6 +6,7 @@
 #include <vector>
 #include "CodeBlock.hpp"
 #include "definitions.hpp"
+#define logme_archt(str) { logme(str, "MEM")}
 
 enum State {
     _LOCKED = 0,
@@ -30,14 +31,17 @@ struct Architecture {
     int var_p;
     std::map<ident, Memory> procedures_memory;
     
+    
 
     void assert_var(ident var_id, ident proc_id){
         procedures_memory[proc_id].variables[var_id] = new_ptr(Register, var_p);
+        logme_archt("Add var " + var_id + " ----> " + proc_id);
         var_p++;
     }
     void assert_arg(ident arg_id, ident proc_id) {
         procedures_memory[proc_id].variables[arg_id] = new_ptr(Register, var_p, "arg");
         procedures_memory[proc_id].arg_ids.push_back(arg_id);
+        logme_archt("Add arg " + arg_id + " ----> " + proc_id);
         var_p++;
     }
     void assert_arg_T(ident tab_id, ident proc_id) {
