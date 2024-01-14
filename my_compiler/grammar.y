@@ -113,10 +113,10 @@ proc_call:
 
     /*declarations -> one ore more ints or tables, separated by commas*/
 declarations:
-     declarations COMMA pidentifier                     {logme("declaration", "[P]");$$ = $1 + $2 + $3;}
-    | declarations COMMA pidentifier LBRCKT num RBRCKT  {logme("declaration", "[P]");$$ = $1 + $2 + $3 + $4 + $5 + $6;}
-    | pidentifier                                       {logme("declaration", "[P]");$$ = $1;}
-    | pidentifier LBRCKT num RBRCKT                     {logme("declaration", "[P]");$$ = $1 + $2 + $3 + $4;}
+     declarations COMMA pidentifier                     {handleVDecl($3);}
+    | declarations COMMA pidentifier LBRCKT num RBRCKT  {handleTDecl($3, $5);}
+    | pidentifier                                       {handleVDecl($1);}
+    | pidentifier LBRCKT num RBRCKT                     {handleTDecl($1, $3);}
 ;
     /*args_decl -> one or more ints or tables, separated by commas (with T before tables)*/
 args_decl:

@@ -16,6 +16,7 @@ std::vector<EdgeProvider>   providers;
 std::map<ident, bool>       procedures;
 std::map<ident, bool>       variables;
 std::map<ident, bool>       arguments;
+std::map<ident, int>        tables;
 ident                       proc_name;
 
 std::string log_head = "H"; // for handlers
@@ -30,6 +31,14 @@ void set_head() {
         logme_handle(log_msg);
     }
     head_sig = 0;
+}
+
+bool isIdUsed(ident id) {
+    if(variables.count(id) || arguments.count(id) || procedures.count(id)) {
+        error("Identifier " + id + " is already in use!", false);
+        return true;
+    }
+    return false;
 }
 
 void handleProcedures2(ident PROCEDURES_ID, ident PROC_HEAD, ident DECLARATIONS_ID, ident COMMANDS_ID) {
@@ -260,9 +269,9 @@ ident handleWhile(ident CONDITION_ID, ident COMMANDS_ID) {
 // ident handleDeclarations()
 
 ident handleProcHead(ident PROC_NAME, ident ARGS_DECL){
-    if(procedures.count(PROC_NAME)) {
-        error("Procedure [" + PROC_NAME + "] already exists!", false);
-    }
+    isIdUsed(PROC_NAME);
+
+    arguments.clear();
 
     proc_name = PROC_NAME;
 
@@ -298,6 +307,20 @@ ident handleProcHead(ident PROC_NAME, ident ARGS_DECL){
     }
 
     return PROC_NAME;
+}
+
+ident handleVDecl(ident PID) {
+    isIdUsed(PID);
+    logme_handle("Declare var: " + PID);
+    variables[PID] = false;
+    return PID;
+}
+
+ident handleTDecl(ident PID, ident num) {
+    isIdUsed(PID);
+    logme_handle("Declare table: " + PID + "[" + num + "]")
+    tables[PID] = stoi(num);
+    return PID;
 }
 
 ident handleRepeat(ident COMMANDS_ID, ident CONDITION_ID) {

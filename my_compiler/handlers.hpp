@@ -14,6 +14,9 @@ ident handleCommands(ident COMMANDS_ID, ident NEXT_COMMAND_ID);
 
 ident handleProcHead(ident PROC_NAME, ident ARGS_DECL);
 
+ident handleVDecl(ident PID);
+ident handleTDecl(ident PID, ident size);
+
 ident handleAssignment(ident IDENTIFIER_ID, ident EXPRESSION_ID);
 ident handleIfElse(ident CONDITION_ID, ident IF_COMMANDS_ID, ident ELSE_COMMANDS_ID);
 ident handleIf(ident CONDITION_ID, ident COMMANDS_ID);
