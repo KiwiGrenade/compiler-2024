@@ -66,7 +66,15 @@ struct Architecture {
 struct AsmInstruction {
     std::string code;
     int instr_ptr;
-    AsmInstruction(std::string _code, int ip) : code(_code), instr_ptr(ip){};
+    std::shared_ptr<CodeBlock> cb;
+
+    AsmInstruction(std::string _code, int ip) : 
+    code(_code), 
+    instr_ptr(ip){};
+    AsmInstruction(std::string _code, ptr(CodeBlock) _cb, int ip) :
+    code(_code),
+    instr_ptr(ip),
+    cb(_cb){};
 };
 
 struct AST {
@@ -88,7 +96,7 @@ struct AST {
     static void add_instruction(ptr(AsmInstruction) instr);
     static void _asm_halt(ptr(CodeBlock) cb);
     
-    static void translate_ins(ptr(Instruction) ins, ptr(CodeBlock) cb);
+    static void translate_ins(Instruction ins, ptr(CodeBlock) cb);
     static void translate_snippet(ptr(CodeBlock) cb);
     static void translate_main();
 

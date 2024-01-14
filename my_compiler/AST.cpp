@@ -44,6 +44,44 @@ void add_asm_instruction(ptr(AsmInstruction) i) {
     AST::instruction_pointer++;
 }
 
+void AST::translate_ins(Instruction ins, ptr(CodeBlock) cb){
+    logme_AST("Translating instructions in procedure: " << cb->proc_id);
+    switch(ins.type_of_instruction) {
+        case _COND:
+            // translate_condition(int, cb);
+            break;
+        case _READ:
+            logme_AST("Translate READ");
+            // _asm_read(ins.right, cb);
+            if(cb->next_true != nullptr && cb->next_true->empty && cb->next_true->instructions[0]._while_cond) {
+                add_asm_instruction(new_ptr(AsmInstruction, "JUMP", cb->next_true, instruction_pointer));
+            }
+            break;
+        case _WRITE:
+            logme_AST("Translate WRITE");
+            // _asm_write(ins.left, cb);
+            if(cb->next_true != nullptr && cb->next_true->empty && cb->next_true->instructions[0]._while_cond) {
+                add_asm_instruction(new_ptr(AsmInstruction, "JUMP", cb->next_true, instruction_pointer));
+            }
+            break;
+        case _ASS:
+            // translate_assignment(ins, cb);
+            if(cb->next_true != nullptr && cb->next_true->empty && cb->next_true->instructions[0]._while_cond) {
+                add_asm_instruction(new_ptr(AsmInstruction, "JUMP", cb->next_true, instruction_pointer));
+            }
+            break;
+        case _CALL:
+            // translate_call(ins, cb);
+            if(cb->next_true != nullptr && cb->next_true->empty && cb->next_true->instructions[0]._while_cond) {
+                add_asm_instruction(new_ptr(AsmInstruction, "JUMP", cb->next_true, instruction_pointer));
+            }
+            break;
+        case _ENDWHILE:
+            break;
+    }
+}
+
+
 void AST::translate_snippet(ptr(CodeBlock) cb){
     logme_AST("Snippet translation: START");
     if(cb == nullptr || cb->translated) {
@@ -52,7 +90,7 @@ void AST::translate_snippet(ptr(CodeBlock) cb){
     else {
         cb->ip = instruction_pointer;
         for(auto instruction : cb->instructions) {
-            // translate_ins(instruction, cb);
+            translate_ins(instruction, cb);
         }
         cb->translated = true;
         
