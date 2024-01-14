@@ -11,7 +11,12 @@ std::vector<int>            AST::head_ids;
 std::vector<CodeBlock>      AST::vertices;
 
 std::vector<EdgeProvider>   providers;
-std::vector<ident>          procedures;
+
+// checking parameters
+std::map<ident, bool>       procedures;
+std::map<ident, bool>       variables;
+std::map<ident, bool>       arguments;
+ident                       proc_name;
 
 std::string log_head = "H"; // for handlers
 
@@ -28,68 +33,84 @@ void set_head() {
 }
 
 void handleProcedures2(ident PROCEDURES_ID, ident PROC_HEAD, ident DECLARATIONS_ID, ident COMMANDS_ID) {
-    ident proc_id = handleProcedures1(PROCEDURES_ID, PROC_HEAD, COMMANDS_ID);
-    std::string tmp_decl = "";
-    for(auto c : DECLARATIONS_ID) {
-        if(c == ',') {
-            AST::architecture.assert_var(tmp_decl, proc_id);
-            logme_handle("Dodano zmienna: " + tmp_decl + " ---> " + proc_id);
-            tmp_decl = "";
-        }
-        else {
-            tmp_decl += c;
-        }
+    // ident proc_id = handleProcedures1(PROCEDURES_ID, PROC_HEAD, COMMANDS_ID);
+    for(auto it : arguments) {
+        // logme_handle("argument procedury: " + proc_id + " o etykiecie: " + it);
+        AST::architecture.assert_arg(it.first, proc_name);
     }
+    AST::architecture.assert_ret_reg(proc_name);
+    procedures[proc_name] = false;
 
-    AST::architecture.assert_var(tmp_decl, proc_id);
-    logme_handle("Dodano zmienna: " + tmp_decl + " ---> " + proc_id);
-    logme_handle("PROCEDURE: definition of [[[" + proc_id + "]]]");
+    auto lt = AST::head_map.end();
+    lt--;
+    int last = lt->first;
+    AST::head_map[last] = proc_name;
+
+    std::string tmp_decl = "";
+    // for(auto c : DECLARATIONS_ID) {
+    //     if(c == ',') {
+    //         AST::architecture.assert_var(tmp_decl, proc_id);
+    //         // logme_handle("Dodano zmienna: " + tmp_decl + " ---> " + proc_id);
+    //         tmp_decl = "";
+    //     }
+    //     else {
+    //         tmp_decl += c;
+    //     }
+    // }
+
+    // AST::architecture.assert_var(tmp_decl, proc_id);
+    AST::architecture.assert_var(proc_name, proc_name);
+
+    // logme_handle("Dodano zmienna: " + tmp_decl + " ---> " + proc_id);
+
+    logme_handle("PROCEDURE: definition of [" + proc_name + "]");
 }
 ident handleProcedures1(ident PROCEDURES_ID, ident PROC_HEAD, ident COMMANDS_ID) {
     head_sig = true;
     logme_handle("to parse: " + PROC_HEAD);
     int n_args = 0;
-    ident tmp_id = "";
-    ident proc_id;
+    // ident tmp_id = "";
     std::vector<ident> tmp_args;
 
+    // std::cout << "chuj: " << PROC_HEAD << std::endl;
     // extract arguments and procedure identifier
-    bool is_procedure = false;
-    for(auto c : PROC_HEAD) {
-        if(is_procedure) {
-            if(c == ',') {
-                n_args++;
-                tmp_args.push_back(tmp_id);
-            }
-        }
-        else if (c == '(') {
-            is_procedure = true;
-            proc_id = tmp_id;
-        }
-        else if (c != ')'){
-            tmp_id += c;
-        }
-    }
-    tmp_args.push_back(tmp_id);
-    n_args++;
+    // bool is_procedure = false;
+    // for(auto c : PROC_HEAD) {
+    //     if(is_procedure) {
+    //         if(c == ',' || c == ) {
+    //             n_args++;
+    //             tmp_args.push_back(tmp_id);
+    //             tmp_id = "";
+    //         }
+    //     }
+    //     else if (c == '(') {
+    //         is_procedure = true;
+    //         proc_id = tmp_id;
+    //     }
+    //     else {
+    //         tmp_id += c;
+    //     }
+    // }
+    // tmp_args.push_back(tmp_id);
+    // n_args++;
     
     // allocate memory for procedure
-    proc_id += "_" + std::to_string(n_args);
-    for(auto it : tmp_args) {
-        logme_handle("argument procedury: " + proc_id + " o etykiecie: " + it);
-        AST::architecture.assert_arg(it, proc_id);
+    // proc_id += "_" + std::to_string(n_args);
+    for(auto it : arguments) {
+        // logme_handle("argument procedury: " + proc_id + " o etykiecie: " + it);
+        AST::architecture.assert_arg(it.first, proc_name);
     }
-    AST::architecture.assert_ret_reg(proc_id);
-    procedures.push_back(proc_id);
+    AST::architecture.assert_ret_reg(proc_name);
+    procedures[proc_name] = false;
     //TODO: \/\/ necessary??
-    AST::architecture.assert_var(proc_id, proc_id);
+    AST::architecture.assert_var(proc_name, proc_name);
 
     auto lt = AST::head_map.end();
     lt--;
     int last = lt->first;
-    AST::head_map[last] = proc_id;
-    logme_handle("PROCEDURE: definition of [" + proc_id + "]");
-    return proc_id;
+    AST::head_map[last] = proc_name;
+    logme_handle("PROCEDURE: definition of [" + proc_name + "]");
+    return proc_name;
 }
 
 //TODO: add table handling
@@ -236,8 +257,46 @@ ident handleWhile(ident CONDITION_ID, ident COMMANDS_ID) {
     return std::to_string(curr_vertex_id - 1);
 }
 
+// ident handleDeclarations()
+
 ident handleProcHead(ident PROC_NAME, ident ARGS_DECL){
-    std::cout << "chuj" << std::endl;
+    if(procedures.count(PROC_NAME)) {
+        error("Procedure [" + PROC_NAME + "] already exists!", false);
+    }
+
+    proc_name = PROC_NAME;
+
+    ident arg_pid = "";
+    bool is_table = false;
+
+    for(auto c : ARGS_DECL) {
+        if(c == ',') {
+            // if can't find arg_tmp in args_pid_list
+            if(!arguments.count(arg_pid)) {
+                arguments[arg_pid] = false;
+                logme_handle("Declare arg: " << arg_pid << " ---> " << PROC_NAME)
+            }
+            else {
+                error("Double delcaration of: [" + arg_pid + "] in procedure [" + PROC_NAME + "]", false);
+            }
+            arg_pid = "";
+            is_table = false;
+        }
+        else if(c == 'T') {
+            is_table = true;
+        }
+        else {
+            arg_pid += c;
+        }
+    }
+    if(!arguments.count(arg_pid)) {
+        arguments[arg_pid] = false;
+        logme_handle("Declare arg: " << arg_pid << " ---> " << PROC_NAME)
+    }
+    else {
+        error("Double delcaration of: [" + arg_pid + "] in procedure [" + PROC_NAME + "]", false);
+    }
+
     return PROC_NAME;
 }
 
@@ -294,22 +353,20 @@ ident handleProcCall(ident PROC_CALL) {
         }
     }
 
-    proc_id += '_' + std::to_string(instruction.args.size());
+    // proc_id += '_' + std::to_string(instruction.args.size());
     
     //TODO: you can optimize this
-    for (auto p : procedures) {
-        if(p == proc_id) { 
-            instruction.proc_id = proc_id;
-            logme_handle("################# PROC_CALL: " << proc_id << " #################")
-            AST::add_vertex(curr_vertex_id);
-            AST::vertices[AST::vertices.size() - 1].instructions.push_back(instruction);
-            
-            providers.push_back(EdgeProvider(curr_vertex_id, curr_vertex_id));
-            
-            logme_handle("################# END_PROC_CALL: " << proc_id << " #################")
-            curr_vertex_id++;
-            return std::to_string(curr_vertex_id - 1);
-        }
+    if (procedures.count(proc_id)) {
+        instruction.proc_id = proc_id;
+        logme_handle("################# PROC_CALL: " << proc_id << " #################")
+        AST::add_vertex(curr_vertex_id);
+        AST::vertices[AST::vertices.size() - 1].instructions.push_back(instruction);
+        
+        providers.push_back(EdgeProvider(curr_vertex_id, curr_vertex_id));
+        
+        logme_handle("################# END_PROC_CALL: " << proc_id << " #################")
+        curr_vertex_id++;
+        return std::to_string(curr_vertex_id - 1);
     }
     logme_handle("Nie znaleziono procedury: " + proc_id);
     return "no procedure found";
