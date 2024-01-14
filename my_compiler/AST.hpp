@@ -38,6 +38,9 @@ struct Architecture {
         logme_archt("Add var " + var_id + " ----> " + proc_id);
         var_p++;
     }
+    void assert_var_T(ident var_id, int size, ident proc_id){
+        warning("AST::Architecture::assert_var_T() not implemented!");
+    }
     void assert_arg(ident arg_id, ident proc_id) {
         procedures_memory[proc_id].variables[arg_id] = new_ptr(Register, var_p, "arg");
         procedures_memory[proc_id].arg_ids.push_back(arg_id);
