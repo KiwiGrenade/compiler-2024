@@ -29,6 +29,6 @@ ident handleProcCall(ident PROC_CALL_ID);
 #define handleExpression handleCondition
 
 ident handleCondition(ident VAL_ID_1, ident OP, int INS_TYPE, ident VAL_ID_2);
-
+ident handleIdentifier1(ident PID);
 
 #endif  // HANDLERS_HPP

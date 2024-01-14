@@ -13,11 +13,11 @@ std::vector<CodeBlock>      AST::vertices;
 std::vector<EdgeProvider>   providers;
 
 // checking parameters
-std::map<ident, bool>       procedures;
-std::map<ident, bool>       variables;
-std::map<ident, bool>       arguments;
-std::map<ident, bool>       arguments_tab;
-std::map<ident, int>        variables_tab;
+std::map<ident, bool>       procedure_ids;
+std::map<ident, bool>       variable_ids;
+std::map<ident, bool>       argument_ids;
+std::map<ident, bool>       arguments_tab_ids;
+std::map<ident, int>        variables_tab_ids;
 ident                       proc_name;
 
 std::string log_head = "H"; // for handlers
@@ -35,7 +35,7 @@ void set_head() {
 }
 
 bool isIdUsed(ident id) {
-    if(variables.count(id) || arguments.count(id) || procedures.count(id) || arguments_tab.count(id) || variables_tab.count(id)) {
+    if(variable_ids.count(id) || argument_ids.count(id) || procedure_ids.count(id) || arguments_tab_ids.count(id) || variables_tab_ids.count(id)) {
         error("Identifier " + id + " is already in use!", false);
         return true;
     }
@@ -46,25 +46,25 @@ void handleProcedures2(ident PROCEDURES_ID, ident PROC_HEAD, ident DECLARATIONS_
     head_sig = true;
     logme_handle("to parse: " + PROC_HEAD);
 
-    for(auto arg : arguments) {
+    for(auto arg : argument_ids) {
         AST::architecture.assert_arg(arg.first, proc_name);
     }
     
-    for(auto arg_tab : arguments_tab) {
+    for(auto arg_tab : arguments_tab_ids) {
         AST::architecture.assert_arg_T(arg_tab.first, proc_name);
     }
 
-    for(auto var : variables)  {
+    for(auto var : variable_ids)  {
         AST::architecture.assert_var(var.first, proc_name);
     }
 
-    for(auto var_tab : variables_tab) {
+    for(auto var_tab : variables_tab_ids) {
         AST::architecture.assert_var_T(var_tab.first, var_tab.second, proc_name);
     }
 
     AST::architecture.assert_ret_reg(proc_name);
 
-    procedures[proc_name] = false;
+    procedure_ids[proc_name] = false;
 
     auto lt = AST::head_map.end();
     lt--;
@@ -74,10 +74,10 @@ void handleProcedures2(ident PROCEDURES_ID, ident PROC_HEAD, ident DECLARATIONS_
     //TODO: \/\/ necessary??
     AST::architecture.assert_var(proc_name, proc_name);
 
-    variables.clear();
-    variables_tab.clear();
-    arguments.clear();
-    arguments_tab.clear();
+    variable_ids.clear();
+    variables_tab_ids.clear();
+    argument_ids.clear();
+    arguments_tab_ids.clear();
 
     logme_handle("PROCEDURE: definition of [" + proc_name + "]");
 }
@@ -86,17 +86,17 @@ ident handleProcedures1(ident PROCEDURES_ID, ident PROC_HEAD, ident COMMANDS_ID)
     head_sig = true;
     logme_handle("to parse: " + PROC_HEAD);
 
-    for(auto arg : arguments) {
+    for(auto arg : argument_ids) {
         AST::architecture.assert_arg(arg.first, proc_name);
     }
     
-    for(auto arg_tab : arguments_tab) {
+    for(auto arg_tab : arguments_tab_ids) {
         AST::architecture.assert_arg_T(arg_tab.first, proc_name);
     }
 
     AST::architecture.assert_ret_reg(proc_name);
     
-    procedures[proc_name] = false;
+    procedure_ids[proc_name] = false;
     
     
     auto lt = AST::head_map.end();
@@ -107,6 +107,10 @@ ident handleProcedures1(ident PROCEDURES_ID, ident PROC_HEAD, ident COMMANDS_ID)
     //TODO: \/\/ necessary??
     AST::architecture.assert_var(proc_name, proc_name);
 
+    variable_ids.clear();
+    variables_tab_ids.clear();
+    argument_ids.clear();
+    arguments_tab_ids.clear();
     
     logme_handle("PROCEDURE: definition of [" + proc_name + "]");
     return proc_name;
@@ -118,11 +122,11 @@ void handleMain2(ident DECLARATIONS_ID, ident COMMANDS_ID){
     
     handleMain1();
     
-    for(auto var : variables)  {
+    for(auto var : variable_ids)  {
         AST::architecture.assert_var(var.first, proc_name);
     }
 
-    for(auto var_tab : variables_tab) {
+    for(auto var_tab : variables_tab_ids) {
         AST::architecture.assert_var_T(var_tab.first, var_tab.second, proc_name);
     }
     logme_handle("DEFINITION: main");
@@ -253,7 +257,7 @@ ident handleWhile(ident CONDITION_ID, ident COMMANDS_ID) {
 ident handleProcHead(ident PROC_NAME, ident ARGS_DECL){
     isIdUsed(PROC_NAME);
 
-    arguments.clear();
+    argument_ids.clear();
 
     proc_name = PROC_NAME;
 
@@ -266,11 +270,11 @@ ident handleProcHead(ident PROC_NAME, ident ARGS_DECL){
         if(c == ',') {
             if(!isIdUsed(arg_pid)) {
                 if(is_table) {
-                    arguments_tab[arg_pid] = false;
+                    arguments_tab_ids[arg_pid] = false;
                     logme_handle("Declare arg_tab: " << arg_pid << " ---> " << PROC_NAME)
                 }
                 else {
-                    arguments[arg_pid] = false;
+                    argument_ids[arg_pid] = false;
                     logme_handle("Declare arg: " << arg_pid << " ---> " << PROC_NAME)
                 }
             }
@@ -286,11 +290,11 @@ ident handleProcHead(ident PROC_NAME, ident ARGS_DECL){
     }
     if(!isIdUsed(arg_pid)) {
         if(is_table) {
-            arguments_tab[arg_pid] = false;
+            arguments_tab_ids[arg_pid] = false;
             logme_handle("Declare arg_tab: " << arg_pid << " ---> " << PROC_NAME)
         }
         else {
-            arguments[arg_pid] = false;
+            argument_ids[arg_pid] = false;
             logme_handle("Declare arg: " << arg_pid << " ---> " << PROC_NAME)
         }
     }
@@ -301,14 +305,14 @@ ident handleProcHead(ident PROC_NAME, ident ARGS_DECL){
 ident handleVDecl(ident PID) {
     isIdUsed(PID);
     logme_handle("Declare var: " + PID);
-    variables[PID] = false;
+    variable_ids[PID] = false;
     return PID;
 }
 
 ident handleTDecl(ident PID, ident num) {
     isIdUsed(PID);
     logme_handle("Declare table: " + PID + "[" + num + "]")
-    variables_tab[PID] = stoi(num);
+    variables_tab_ids[PID] = stoi(num);
     return PID;
 }
 
@@ -338,50 +342,62 @@ ident handleRepeat(ident COMMANDS_ID, ident CONDITION_ID) {
 }
 
 ident handleProcCall(ident PROC_CALL) {
+    logme_handle("PROC_CALL: " << PROC_CALL);
     set_head();
     ident proc_id;
-    ident tmp_arg_name;
+    ident tmp_arg;
     Instruction instruction;
     instruction.type_of_instruction = content_type::_CALL;
     
     //TODO: check if you can optimise this
-    //TODO: include variables_tab into arguments
-    bool is_function = false;
-    for(auto c : PROC_CALL) {
-        if (c == '(') {
-            is_function = true;
-        }
-        if (is_function) {
-            if (c == ',' || c == ')') {
-                instruction.args.push_back(Value(tmp_arg_name));
-                tmp_arg_name = "";
+    //TODO: include variables_tab_ids into argument_ids
+
+    bool is_declared = false;
+    int i = 0;
+    for(i = 0; i < PROC_CALL.size(); i++) {
+        if(PROC_CALL[i] == '(') {
+            if (procedure_ids.count(tmp_arg)) {
+                is_declared = true;
+                break;
             }
             else {
-                tmp_arg_name += c;
+                error("Procedure [" + tmp_arg + "] has not been declared", false);
+                break;
             }
         }
         else {
-            proc_id += c;
+            tmp_arg += PROC_CALL[i];
         }
     }
 
-    // proc_id += '_' + std::to_string(instruction.args.size());
-    
-    //TODO: you can optimize this
-    if (procedures.count(proc_id)) {
-        instruction.proc_id = proc_id;
-        logme_handle("################# PROC_CALL: " << proc_id << " #################")
-        AST::add_vertex(curr_vertex_id);
-        AST::vertices[AST::vertices.size() - 1].instructions.push_back(instruction);
-        
-        providers.push_back(EdgeProvider(curr_vertex_id, curr_vertex_id));
-        
-        logme_handle("################# END_PROC_CALL: " << proc_id << " #################")
-        curr_vertex_id++;
-        return std::to_string(curr_vertex_id - 1);
+    if (!is_declared) {
+        return "no procedure found";
     }
-    logme_handle("Nie znaleziono procedury: " + proc_id);
-    return "no procedure found";
+    
+    ident arg_list;
+
+    for(i; i < PROC_CALL.size(); i++) {
+        if ((PROC_CALL[i] == ',' || PROC_CALL[i] == ')')) {
+            if("")
+            instruction.args.push_back(Value(tmp_arg));
+            arg_list += tmp_arg += ",";
+            tmp_arg = "";
+        }
+        else {
+            tmp_arg += PROC_CALL[i];
+        }
+    }
+
+    instruction.proc_id = proc_id;
+    
+    AST::add_vertex(curr_vertex_id);
+    AST::vertices[AST::vertices.size() - 1].instructions.push_back(instruction);
+
+    providers.push_back(EdgeProvider(curr_vertex_id, curr_vertex_id));
+
+    curr_vertex_id++;
+    return std::to_string(curr_vertex_id - 1);
+ 
 }
 
 ident handleCondition(ident VAL1, ident OP, int INS_TYPE, ident VAL2) {
@@ -392,12 +408,13 @@ ident handleCondition(ident VAL1, ident OP, int INS_TYPE, ident VAL2) {
     Instruction instruction;
     instruction.type_of_instruction = INS_TYPE;
     // _WRITE -> no LHS
+
     if((instruction.type_of_instruction != content_type::_WRITE) &&
         (instruction.type_of_instruction != content_type::_READ)) {
         instruction.left = Value(VAL1);
     }
     // _NONE -> no RHS
-    if(instruction.type_of_instruction != operator_type::_NONE) {
+    if((instruction.type_of_instruction != operator_type::_NONE)) {        
         instruction.right = Value(VAL2);
     }
     
@@ -412,4 +429,15 @@ ident handleCondition(ident VAL1, ident OP, int INS_TYPE, ident VAL2) {
     
     curr_vertex_id++;
     return std::to_string(curr_vertex_id - 1);
+}
+
+ident handleIdentifier1(ident PID) {
+    if((!variable_ids.count(PID)) && (!argument_ids.count(PID)) && (!variables_tab_ids.count(PID)) && (!arguments_tab_ids.count(PID))) {
+        error("Variable [" + PID + "] has not been declared!", true);       
+    }
+    return PID;
+}
+ident handleIdentifier2(ident PID, ident num) {
+    handleIdentifier1(PID);
+    // if()
 }

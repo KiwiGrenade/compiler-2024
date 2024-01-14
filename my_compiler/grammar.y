@@ -104,11 +104,11 @@ command:
     | KW_WRITE value SEMICOLON                                      {$$ = handleWrite("", "WRITE", content_type::_WRITE, $2);}
  
 proc_head:
-    pidentifier LPRNT args_decl RPRNT                   {logme("proc_head", "[P]");$$ = handleProcHead($1, $3) + $2 + $3 + $4;}
+    pidentifier LPRNT args_decl RPRNT                   {handleProcHead($1, $3);}
 ;
 
 proc_call: 
-    pidentifier LPRNT args RPRNT                        {logme("proc_call", "[P]");$$ = $1 + $2 + $3 + $4;}
+    pidentifier LPRNT args RPRNT                        {$$ = $1 + $2 + $3 + $4;}
 ;
 
     /*declarations -> one ore more ints or tables, separated by commas*/
@@ -127,8 +127,8 @@ args_decl:
 ;   
     /*args -> one or more ints or tables (without T) */
 args:
-    args COMMA pidentifier  {logme("args", "[P]");$$ = $1 + $2 + $3;}
-    | pidentifier           {logme("args", "[P]");$$ = $1;}
+    args COMMA pidentifier  {$$ = $1 + $2 + $3;}
+    | pidentifier           {$$ = $1;}
 ;
     /*expression -> 1 OR 2 values*/
 expression:
@@ -158,7 +158,7 @@ value:
 
 identifier: 
     /*identifier( -> variable or table)*/
-    pidentifier                                 {$$ = $1;}
+    pidentifier                                 {$$ = handleIdentifier1($1);}
     | pidentifier LBRCKT num RBRCKT             {$$ = $1;}
     | pidentifier LBRCKT pidentifier RBRCKT     {$$ = $1;}
 ;
