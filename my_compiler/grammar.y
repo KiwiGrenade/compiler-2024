@@ -159,7 +159,7 @@ value:
 identifier: 
     /*identifier( -> variable or table)*/
     pidentifier                                 {$$ = handleIdentifier1($1);}
-    | pidentifier LBRCKT num RBRCKT             {$$ = $1;}
-    | pidentifier LBRCKT pidentifier RBRCKT     {$$ = $1;}
+    | pidentifier LBRCKT num RBRCKT             {$$ = $1 + $2 + $3 + $4;}
+    | pidentifier LBRCKT pidentifier RBRCKT     {$$ = $1 + $2 + $3 + $3;}
 ;
 %%

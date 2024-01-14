@@ -36,7 +36,7 @@ void set_head() {
 
 bool isIdUsed(ident id) {
     if(variable_ids.count(id) || argument_ids.count(id) || procedure_ids.count(id) || arguments_tab_ids.count(id) || variables_tab_ids.count(id)) {
-        error("Identifier " + id + " is already in use!", false);
+        error("Identifier " + id + " is already in use!", true);
         return true;
     }
     return false;
@@ -177,6 +177,8 @@ ident handleIfElse(ident CONDITION_ID, ident IF_COMMANDS_ID, ident ELSE_COMMANDS
     int if_comms_id = stoi(IF_COMMANDS_ID);
     int el_comms_id = stoi(ELSE_COMMANDS_ID);
 
+    logme_handle("HANDLE_IF_ELSE");
+
     AST::add_vertex(curr_vertex_id);
     AST::vertices[AST::vertices.size() - 1].empty = 1;
 
@@ -196,6 +198,7 @@ ident handleIfElse(ident CONDITION_ID, ident IF_COMMANDS_ID, ident ELSE_COMMANDS
 
     providers.push_back(EdgeProvider(cond_begin_id, curr_vertex_id));
 
+    logme_handle("END_HANDLE_IF_ELSE");
 
     curr_vertex_id++;
     return std::to_string(curr_vertex_id - 1);   
@@ -361,7 +364,7 @@ ident handleProcCall(ident PROC_CALL) {
                 break;
             }
             else {
-                error("Procedure [" + tmp_arg + "] has not been declared", false);
+                error("Procedure [" + tmp_arg + "] has not been declared", true);
                 break;
             }
         }
@@ -437,7 +440,6 @@ ident handleIdentifier1(ident PID) {
     }
     return PID;
 }
-ident handleIdentifier2(ident PID, ident num) {
-    handleIdentifier1(PID);
-    // if()
+ident handleIdentifier3(ident PID, ident NUM) {
+    int idx = std::stoi(NUM);
 }
