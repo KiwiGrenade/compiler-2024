@@ -2,6 +2,11 @@
 #include <algorithm>
 #include "AST.hpp"
 
+// std::vector<AsmInstruction> _asm_instructions;
+std::vector<ptr(AsmInstruction)>  AST::_asm_instructions;
+int                          AST::instruction_pointer = 0;
+
+
 std::string AST_log_head = "A";
 #define logme_AST(str) { logme(str, AST_log_head) }
 
@@ -31,4 +36,34 @@ void AST::add_edge(int v_id, int u_id, bool flag) {
     } catch (const char* msg) {
         std::cerr << msg << std::endl;
     }
+}
+
+void add_asm_instruction(ptr(AsmInstruction) i) {
+    AST::_asm_instructions.push_back(i);
+    AST::instruction_pointer++;
+}
+
+void AST::translate_main() {
+    logme_AST("Translate_main: START");
+
+    for(auto it : head_map) {
+        if(it.second == "main") {
+            auto head = get_vertex(it.first);
+            logme_AST("Main head number: " << it.first);
+            instruction_pointer++;
+        }
+    }
+    for(auto it : head_ids) {
+        logme_AST("Translating head: " << it);
+        auto head = get_vertex(it);
+
+        // translate_snippet(head);
+        logme_AST("Translation of head: " << it << " END");
+    }
+
+    // _asm_halt();
+}
+
+void AST::_asm_halt(ptr(CodeBlock) cb) {
+    add_asm_instruction(new_ptr(AsmInstruction, "HALT", instruction_pointer));
 }

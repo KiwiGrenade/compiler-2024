@@ -30,8 +30,15 @@ struct Memory {
 struct Architecture {
     int var_p;
     std::map<ident, Memory> procedures_memory;
-    
-    
+
+    ptr(Register) reg_a;
+    ptr(Register) reg_b;
+    ptr(Register) reg_c;
+    ptr(Register) reg_d;
+    ptr(Register) reg_e;
+    ptr(Register) reg_f;
+    ptr(Register) reg_g;
+    ptr(Register) reg_h;
 
     void assert_var(ident var_id, ident proc_id){
         procedures_memory[proc_id].variables[var_id] = new_ptr(Register, var_p);
@@ -54,18 +61,30 @@ struct Architecture {
         procedures_memory[proc_id].ret_reg = new_ptr(Register, var_p);
     }
 };
+
+struct AsmInstruction {
+    std::string code;
+    int instr_ptr;
+    AsmInstruction(std::string _code, int ip) : code(_code), instr_ptr(ip){};
+};
+
 struct AST {
+    static int                          instruction_pointer;
     static std::vector<int>             head_ids;
     static std::map<int, ident>         head_map;
     static std::vector<CodeBlock>       vertices;
     static Architecture                 architecture;
+    static std::vector<ptr(AsmInstruction)>  _asm_instructions;
 
     static void add_vertex(size_t id);
     static void add_edge(int v_id, int u_id);
     static void add_edge(int v_id, int u_id, bool flag);
     static CodeBlock& get_vertex(int id);
     virtual ~AST() = default;
-
+    // ASSEMBLER INSTRUCTIONS
+    static void add_instruction(ptr(AsmInstruction) instr);
+    static void _asm_halt(ptr(CodeBlock));
+    static void translate_main();
 };
 
 // enum table_ref_type {

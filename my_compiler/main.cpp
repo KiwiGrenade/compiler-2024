@@ -48,8 +48,9 @@ int main(int argc, char* argv[])
 
     yyin = pFILE_IN;
 
-
     yyparse();
+
+    AST::translate_main();
 
     return 0;
 }
