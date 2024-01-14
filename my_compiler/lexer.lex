@@ -39,7 +39,6 @@ newline         \n|\r|\n\r
 {num}          { yylval = std::string(yytext); return num; }
 {pidentifier}  { yylval = std::string(yytext); return pidentifier; }
 {newline}      { currLine++; }
-.              {/* TODO: Add INVALID_CHARACTER handling */}
 
 [A-Z]+  {
             std::string KW = std::string(yytext);
@@ -81,5 +80,7 @@ newline         \n|\r|\n\r
                 /* TODO: Add INVALID_KEYWORD handling */
             }
         }
+
+.              {/* TODO: Add INVALID_CHARACTER handling */}
 %%
 size_t currLine = 1;
