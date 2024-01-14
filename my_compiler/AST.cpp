@@ -44,22 +44,70 @@ void add_asm_instruction(ptr(AsmInstruction) i) {
     AST::instruction_pointer++;
 }
 
+void AST::_asm_read() {
+    add_asm_instruction(new_ptr(AsmInstruction, "READ", instruction_pointer));
+}
+
+void AST::_asm_write() {
+    add_asm_instruction(new_ptr(AsmInstruction, "WRITE", instruction_pointer));
+}
+
+void AST::_asm_halt() {
+    add_asm_instruction(new_ptr(AsmInstruction, "HALT", instruction_pointer));
+}
+
+void AST::_asm_cmp_less(Value left, Value right, ptr(CodeBlock) cb) {
+
+}
+void AST::_asm_cmp_eq(Value left, Value right, ptr(CodeBlock) cb) {
+
+}
+void AST::_asm_cmp_less_or_equal(Value left, Value right, ptr(CodeBlock) cb) {
+
+}
+void AST::_asm_cmp_neq(Value left, Value right, ptr(CodeBlock) cb) {
+
+}
+
+void AST::translate_condition(Instruction ins, ptr(CodeBlock) cb) {
+        switch(ins.type_of_instruction) {
+        case _LESS:
+            _asm_cmp_less(ins.left, ins.right, cb);
+            break;
+        case _MORE:
+            _asm_cmp_less(ins.right, ins.left, cb);
+            break;
+        case _EQ:
+            _asm_cmp_eq(ins.left, ins.right, cb);
+            break;
+        case _LESSOREQUAL:
+            _asm_cmp_less_or_equal(ins.left, ins.right, cb);
+            break;
+        case _MOREOREQUAL:
+            _asm_cmp_less_or_equal(ins.right, ins.left, cb);
+            break;
+        case _NEQ:
+            _asm_cmp_neq(ins.left, ins.right, cb);
+            break;
+    }
+}
+
 void AST::translate_ins(Instruction ins, ptr(CodeBlock) cb){
     logme_AST("Translating instructions in procedure: " << cb->proc_id);
     switch(ins.type_of_instruction) {
         case _COND:
-            // translate_condition(int, cb);
+            translate_condition(ins, cb);
             break;
         case _READ:
             logme_AST("Translate READ");
-            // _asm_read(ins.right, cb);
+            _asm_read();
             if(cb->next_true != nullptr && cb->next_true->empty && cb->next_true->instructions[0]._while_cond) {
                 add_asm_instruction(new_ptr(AsmInstruction, "JUMP", cb->next_true, instruction_pointer));
             }
             break;
         case _WRITE:
             logme_AST("Translate WRITE");
-            // _asm_write(ins.left, cb);
+            _asm_write();
             if(cb->next_true != nullptr && cb->next_true->empty && cb->next_true->instructions[0]._while_cond) {
                 add_asm_instruction(new_ptr(AsmInstruction, "JUMP", cb->next_true, instruction_pointer));
             }
@@ -98,7 +146,7 @@ void AST::translate_snippet(ptr(CodeBlock) cb){
         if(cb->next_true == nullptr) {
             logme_AST("End of procedure: " + cb->proc_id) 
             if (cb->proc_id == "main") {
-                _asm_halt(cb);
+                _asm_halt();
             }
             else {
                 // _asm_jump_i(cb);
@@ -139,13 +187,11 @@ void AST::translate_main() {
     // _asm_halt();
 }
 
-void AST::_asm_halt(ptr(CodeBlock) cb) {
-    add_asm_instruction(new_ptr(AsmInstruction, "HALT", instruction_pointer));
-}
 
 void AST::save_code(std::string file_name) {
     std::ofstream output (file_name);
     for (auto asmins : _asm_instructions) {
+        output << asmins->code << std::endl;
         // if (asmins.jump_address == -1) {
         //     if (asmins._register != nullptr) {
         //         //log.log(std::to_string(asmins.ip) + "   " + asmins.code + "        " + std::to_string(asmins._register->id) + asmins.constant + asmins.label);

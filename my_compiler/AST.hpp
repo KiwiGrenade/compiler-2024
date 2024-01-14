@@ -94,8 +94,19 @@ struct AST {
     
     // ASSEMBLER INSTRUCTIONS
     static void add_instruction(ptr(AsmInstruction) instr);
-    static void _asm_halt(ptr(CodeBlock) cb);
     
+    static void _asm_cmp_less(Value left, Value right, ptr(CodeBlock) cb);
+    static void _asm_cmp_eq(Value left, Value right, ptr(CodeBlock) cb);
+    static void _asm_cmp_less_or_equal(Value left, Value right, ptr(CodeBlock) cb);
+    static void _asm_cmp_neq(Value left, Value right, ptr(CodeBlock) cb);
+    // NONE OPEARND 
+    static void _asm_halt();
+    static void _asm_write();
+    static void _asm_read();
+    
+
+
+    static void translate_condition(Instruction ins, ptr(CodeBlock) cd);
     static void translate_ins(Instruction ins, ptr(CodeBlock) cb);
     static void translate_snippet(ptr(CodeBlock) cb);
     static void translate_main();
