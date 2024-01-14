@@ -83,11 +83,15 @@ struct AST {
     static void add_edge(int v_id, int u_id, bool flag);
     static ptr(CodeBlock) get_vertex(int id);
     virtual ~AST() = default;
+    
     // ASSEMBLER INSTRUCTIONS
     static void add_instruction(ptr(AsmInstruction) instr);
     static void _asm_halt(ptr(CodeBlock) cb);
+    
+    static void translate_ins(ptr(Instruction) ins, ptr(CodeBlock) cb);
     static void translate_snippet(ptr(CodeBlock) cb);
     static void translate_main();
+
     static void save_code(std::string file_name);
 };
 
