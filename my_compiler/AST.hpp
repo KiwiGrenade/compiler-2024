@@ -9,26 +9,26 @@
 #include "definitions.hpp"
 #define logme_archt(str) { logme(str, "MEM")}
 
-enum State {
-    _LOCKED = 0,
-    _UNLOCKED = 1
-};
+// enum State {
+//     _LOCKED = 0,
+//     _UNLOCKED = 1
+// };
 
-struct Register {
-    int id;
-    State state;
-    bool is_argument = false;
+// struct Register {
+//     int id;
+//     State state;
+//     bool is_argument = false;
     
-    Register(int _id) : id(_id), state(_UNLOCKED) {};
-    Register(int _id, bool STUD) : id(_id), is_argument(true), state(_UNLOCKED){};
-};
+//     Register(int _id) : id(_id), state(_UNLOCKED) {};
+//     Register(int _id, bool STUD) : id(_id), is_argument(true), state(_UNLOCKED){};
+// };
 
-struct Memory {
-    std::map<ident, ptr(Register)> variables;
-    std::vector<ident> arg_ids;
-    ptr(Register) ret_reg = nullptr;
-};
-struct Architecture {
+// struct Memory {
+//     std::map<ident, ptr(Register)> variables;
+//     std::vector<ident> arg_ids;
+//     ptr(Register) ret_reg = nullptr;
+// };
+// struct Architecture {
     // int var_p;
     // std::map<ident, Memory> procedures_memory;
 
@@ -61,10 +61,9 @@ struct Architecture {
     // void assert_ret_reg(ident proc_id) {
     //     procedures_memory[proc_id].ret_reg = new_ptr(Register, var_p);
     // }
-};
+// };
 
-enum AsmInstruction_type {
-};
+// enum Register
 
 struct AsmInstruction {
     int instr_ptr;
@@ -96,7 +95,7 @@ struct AST {
     static std::vector<int>                     head_ids;
     static std::map<int, ident>                 head_map;
     static std::vector<ptr(CodeBlock)>          vertices;
-    static Architecture                         architecture;
+    // static Architecture                         architecture;
     static std::vector<ptr(AsmInstruction)>     _asm_instructions;
 
     static void add_vertex(size_t _id, Instruction _ins);

@@ -6,7 +6,7 @@ bool                        head_sig = true;
 size_t                      curr_vertex_id = 0;
 
 std::map<int, std::string>  AST::head_map;
-Architecture                AST::architecture;
+// Architecture                AST::architecture;
 std::vector<int>            AST::head_ids;
 std::vector<ptr(CodeBlock)>      AST::vertices;
 
