@@ -95,6 +95,13 @@ struct AST {
     // ASSEMBLER INSTRUCTIONS
     static void add_instruction(ptr(AsmInstruction) instr);
     
+    // EXPRESSIONS
+    static void _asm_add(Value val1, ptr(CodeBlock) cb);
+    static void _asm_sub(Value val1, ptr(CodeBlock) cb);
+    static void _asm_mul(Value val1, Value val2, ptr(CodeBlock) cb);
+    static void _asm_div(Value val1, Value val2, ptr(CodeBlock) cb);
+    static void _asm_mod(Value val1, Value val2, ptr(CodeBlock) cb);
+    // CONDITIONS
     static void _asm_cmp_less(Value left, Value right, ptr(CodeBlock) cb);
     static void _asm_cmp_eq(Value left, Value right, ptr(CodeBlock) cb);
     static void _asm_cmp_less_or_equal(Value left, Value right, ptr(CodeBlock) cb);
@@ -105,7 +112,7 @@ struct AST {
     static void _asm_read();
     
 
-
+    static void translate_assignment(Instruction ins, ptr(CodeBlock) cd);
     static void translate_condition(Instruction ins, ptr(CodeBlock) cd);
     static void translate_ins(Instruction ins, ptr(CodeBlock) cb);
     static void translate_snippet(ptr(CodeBlock) cb);

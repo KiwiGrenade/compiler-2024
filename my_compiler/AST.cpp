@@ -32,8 +32,7 @@ void AST::add_edge(int v_id, int u_id, bool flag) {
         } else {
             AST::get_vertex(v_id)->next_false_id = u_id;
         }
-        logme_AST("dodano krawedz: " + std::to_string(flag) + "(" + std::to_string(v_id) + ", " + std::to_string(u_id) + ")");
-        // logger.LOG("dodano krawedz: " + std::to_string(flag) + "(" + std::to_string(v_id) + ", " + std::to_string(u_id) + ")\n");
+        logme_AST("dodano krawedz: " << flag << "(" << v_id << ", " << u_id << ")");
     } catch (const char* msg) {
         std::cerr << msg << std::endl;
     }
@@ -57,20 +56,38 @@ void AST::_asm_halt() {
 }
 
 void AST::_asm_cmp_less(Value left, Value right, ptr(CodeBlock) cb) {
-
+    warning("AST::_asm_cmp_less() not implemented!");
 }
 void AST::_asm_cmp_eq(Value left, Value right, ptr(CodeBlock) cb) {
-
+    warning("AST::_asm_cmp_eq() not implemented!");
 }
 void AST::_asm_cmp_less_or_equal(Value left, Value right, ptr(CodeBlock) cb) {
-
+    warning("AST::_asm_cmp_less_or_equal() not implemented!");
 }
 void AST::_asm_cmp_neq(Value left, Value right, ptr(CodeBlock) cb) {
-
+    warning("AST::_asm_cmp_neq() not implemented!");
 }
 
+void AST::_asm_add(Value val1, ptr(CodeBlock) cb) {
+    warning("AST::_asm_add() not implemented!");
+}
+void AST::_asm_sub(Value val1, ptr(CodeBlock) cb) {
+    warning("AST::_asm_sub() not implemented!");
+}
+void AST::_asm_mul(Value val1, Value val2, ptr(CodeBlock) cb) {
+    warning("AST::_asm_mul() not implemented!");
+}
+void AST::_asm_div(Value val1, Value val2, ptr(CodeBlock) cb) {
+    warning("AST::_asm_div() not implemented!");
+}
+void AST::_asm_mod(Value val1, Value val2, ptr(CodeBlock) cb) {
+    warning("AST::_asm_mod() not implemented!");
+}
+    
+
 void AST::translate_condition(Instruction ins, ptr(CodeBlock) cb) {
-        switch(ins.type_of_instruction) {
+    logme_AST("Translate condition: ")
+    switch(ins.type_of_instruction) {
         case _LESS:
             _asm_cmp_less(ins.left, ins.right, cb);
             break;
@@ -88,6 +105,27 @@ void AST::translate_condition(Instruction ins, ptr(CodeBlock) cb) {
             break;
         case _NEQ:
             _asm_cmp_neq(ins.left, ins.right, cb);
+            break;
+    }
+}
+
+void AST::translate_assignment(Instruction ins, ptr(CodeBlock) cb) {
+    logme_AST("Translate assignment: ")
+        switch(ins.type_of_instruction) {
+        case _ADD:
+            _asm_add(ins.right, cb);
+            break;
+        case _SUB:
+            _asm_sub(ins.right, cb);
+            break;
+        case _MUL:
+            _asm_mul(ins.left, ins.right, cb);
+            break;
+        case _DIV:
+            _asm_div(ins.left, ins.right, cb);
+            break;
+        case _MOD:
+            _asm_mod(ins.left, ins.right, cb);
             break;
     }
 }
@@ -113,7 +151,7 @@ void AST::translate_ins(Instruction ins, ptr(CodeBlock) cb){
             }
             break;
         case _ASS:
-            // translate_assignment(ins, cb);
+            translate_assignment(ins, cb);
             if(cb->next_true != nullptr && cb->next_true->empty && cb->next_true->instructions[0]._while_cond) {
                 add_asm_instruction(new_ptr(AsmInstruction, "JUMP", cb->next_true, instruction_pointer));
             }
@@ -207,6 +245,5 @@ void AST::save_code(std::string file_name) {
 
         // }
     }
-    output << "test chuja" << std::endl;
     output.close();
 }
