@@ -50,6 +50,9 @@ int main(int argc, char* argv[])
 
     yyparse();
 
+
+    AST::link_vertices();
+    AST::spread_proc_name();
     AST::translate_main();
     AST::save_code(output_file);
 

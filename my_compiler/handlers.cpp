@@ -250,8 +250,6 @@ ident handleWhile(ident CONDITION_ID, ident COMMANDS_ID) {
     return std::to_string(curr_vertex_id - 1);
 }
 
-// ident handleDeclarations()
-
 ident handleProcHead(ident PROC_NAME, ident ARGS_DECL){
     isIdUsed(PROC_NAME);
 
@@ -431,6 +429,7 @@ ident handleIdentifier1(ident PID) {
     }
     return PID;
 }
+
 ident handleIdentifier3(ident PID, ident NUM) {
     int idx = std::stoi(NUM);
 }

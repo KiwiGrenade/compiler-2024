@@ -12,6 +12,11 @@ std::string AST_log_head = "A";
 #define logme_AST(str) { logme(str, AST_log_head) }
 
 ptr(CodeBlock) AST::get_vertex(int _id) {
+    if (_id == -1)
+    {
+        return nullptr;
+    }
+    
     for(ptr(CodeBlock) vert : AST::vertices){
         if(vert->id == _id) {
             return vert;
@@ -135,7 +140,7 @@ void AST::translate_assignment(Instruction ins, ptr(CodeBlock) cb) {
 }
 
 void AST::translate_ins(Instruction ins, ptr(CodeBlock) cb){
-    logme_AST("Translating instructions in procedure: " << cb->proc_id);
+    logme_AST("Translating instruction " << ins.type_of_instruction << " in procedure: " << cb->proc_id);
     switch(ins.type_of_instruction) {
         case _COND:
             translate_condition(ins, cb);
@@ -143,67 +148,69 @@ void AST::translate_ins(Instruction ins, ptr(CodeBlock) cb){
         case _READ:
             logme_AST("Translate READ");
             _asm_read();
-            if(cb->next_true != nullptr && cb->next_true->empty && cb->next_true->instructions[0]._while_cond) {
+            if(cb->next_true != nullptr && !cb->next_true->empty && cb->next_true->instructions[0]._while_cond) {
                 add_asm_instruction(new_ptr(AsmInstruction, "JUMP", cb->next_true, instruction_pointer));
             }
             break;
         case _WRITE:
             logme_AST("Translate WRITE");
             _asm_write();
-            if(cb->next_true != nullptr && cb->next_true->empty && cb->next_true->instructions[0]._while_cond) {
+            logme_AST("NULL");
+            if(cb->next_true != nullptr && !cb->next_true->empty && cb->next_true->instructions[0]._while_cond) {
                 add_asm_instruction(new_ptr(AsmInstruction, "JUMP", cb->next_true, instruction_pointer));
             }
+            logme_AST("FULL");
             break;
         case _ASS:
             translate_assignment(ins, cb);
-            if(cb->next_true != nullptr && cb->next_true->empty && cb->next_true->instructions[0]._while_cond) {
-                add_asm_instruction(new_ptr(AsmInstruction, "JUMP", cb->next_true, instruction_pointer));
+            if(cb->next_true != nullptr && !cb->next_true->empty && cb->next_true->instructions[0]._while_cond) {
+               add_asm_instruction(new_ptr(AsmInstruction, "JUMP", cb->next_true, instruction_pointer));
             }
             break;
         case _CALL:
             // translate_call(ins, cb);
-            if(cb->next_true != nullptr && cb->next_true->empty && cb->next_true->instructions[0]._while_cond) {
+            if(cb->next_true != nullptr && !cb->next_true->empty && cb->next_true->instructions[0]._while_cond) {
                 add_asm_instruction(new_ptr(AsmInstruction, "JUMP", cb->next_true, instruction_pointer));
             }
+            logme_AST("WHILE CHECKED");
             break;
         case _ENDWHILE:
+            logme_AST("WHILE CHECKED");
             break;
     }
 }
 
 
 void AST::translate_snippet(ptr(CodeBlock) cb){
-    logme_AST("Snippet translation: START");
     if(cb == nullptr || cb->translated) {
         return;
     }
-    else {
-        cb->ip = instruction_pointer;
-        for(auto instruction : cb->instructions) {
-            translate_ins(instruction, cb);
-        }
-        cb->translated = true;
-        
-        logme_AST("before if");
-        if(cb->next_true == nullptr) {
-            logme_AST("End of procedure: " + cb->proc_id) 
-            if (cb->proc_id == "main") {
-                _asm_halt();
-            }
-            else {
-                // _asm_jump_i(cb);
-            }
+    logme_AST("Snippet translation: START");
+    cb->ip = instruction_pointer;
+    for(auto instruction : cb->instructions) {
+        translate_ins(instruction, cb);
+    }
+    cb->translated = true;
+    
+    logme_AST("before if");
+    if(cb->next_true == nullptr) {
+        logme_AST("End of procedure: " + cb->proc_id) 
+        if (cb->proc_id == "main") {
+            _asm_halt();
         }
         else {
-            if (cb->empty) {
-                cb->translated = false;
-                add_asm_instruction(new_ptr(AsmInstruction, "JUMP", cb->next_true, instruction_pointer));
-                logme_AST("My next is: " << cb->next_true->instructions[0].type_of_instruction);
-            }
-            logme_AST("after if")
-            translate_snippet(cb->next_true);
-            translate_snippet(cb->next_false);
+            // _asm_jump_i(cb);
         }
+    }
+    else {
+        if (cb->empty) {
+            cb->translated = false;
+            add_asm_instruction(new_ptr(AsmInstruction, "JUMP", cb->next_true, instruction_pointer));
+            // logme_AST("My next is: " << std::to_string(cb->next_true->instructions[0].type_of_instruction));
+        }
+        logme_AST("after if")
+        translate_snippet(cb->next_true);
+        translate_snippet(cb->next_false);
     }
     logme_AST("Snippet translation: END");
 }
@@ -215,7 +222,7 @@ void AST::translate_main() {
         if(it.second == "main") {
             auto head = get_vertex(it.first);
             logme_AST("Main head number: " << it.first);
-            instruction_pointer++;
+            add_asm_instruction(new_ptr(AsmInstruction,"JUMP", head, instruction_pointer));
         }
     }
     for(auto it : head_ids) {
@@ -227,6 +234,34 @@ void AST::translate_main() {
     }
 }
 
+void AST::link_vertices() {
+    logme_AST("Linking vertices: START");
+    for(auto ver : vertices) {
+        logme_AST("Linking vertice: " << ver->id);
+        ver->next_true = get_vertex(ver->next_true_id);
+        ver->next_false = get_vertex(ver->next_false_id);
+        if (ver->next_false_id == -1 && ver->next_true_id == -1) {
+            ver->last = 1;
+        }
+    }
+    logme_AST("Linking vertices: END");
+}
+
+void AST::preorder_traversal_proc_id(ptr(CodeBlock) cb, std::string proc_id) {
+    if(cb != nullptr && cb-> visited == false) {
+        cb->visited = true;
+        cb->proc_id = proc_id;
+        preorder_traversal_proc_id(cb->next_true, proc_id);
+        preorder_traversal_proc_id(cb->next_false, proc_id);
+    }
+}
+
+void AST::spread_proc_name() {
+    for (auto head : head_map) {
+        ptr(CodeBlock) ver = get_vertex(head.first);
+        preorder_traversal_proc_id(ver, head.second);
+    }
+}
 
 void AST::save_code(std::string file_name) {
     std::ofstream output (file_name);
