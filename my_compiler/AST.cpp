@@ -164,26 +164,30 @@ void AST::translate_ins(Instruction ins, ptr(CodeBlock) cb){
             logme_AST("Translate READ");
             _asm_read();
             if(cb->next_true != nullptr && !cb->next_true->empty && cb->next_true->instructions[0]._while_cond) {
-                add_asm_instruction(new_ptr(AsmInstruction, "JUMP", cb->next_true, instruction_pointer));
+                _asm_jump(cb->next_true);
+                // add_asm_instruction(new_ptr(AsmInstruction, "JUMP", cb->next_true, instruction_pointer));
             }
             break;
         case _WRITE:
             logme_AST("Translate WRITE");
             _asm_write();
             if(cb->next_true != nullptr && !cb->next_true->empty && cb->next_true->instructions[0]._while_cond) {
-                add_asm_instruction(new_ptr(AsmInstruction, "JUMP", cb->next_true, instruction_pointer));
+                _asm_jump(cb->next_true);
+                // add_asm_instruction(new_ptr(AsmInstruction, "JUMP", cb->next_true, instruction_pointer));
             }
             break;
         case _ASS:
             translate_assignment(ins, cb);
             if(cb->next_true != nullptr && !cb->next_true->empty && cb->next_true->instructions[0]._while_cond) {
-               add_asm_instruction(new_ptr(AsmInstruction, "JUMP", cb->next_true, instruction_pointer));
+                _asm_jump(cb->next_true);
+            //    add_asm_instruction(new_ptr(AsmInstruction, "JUMP", cb->next_true, instruction_pointer));
             }
             break;
         case _CALL:
             // translate_call(ins, cb);
             if(cb->next_true != nullptr && !cb->next_true->empty && cb->next_true->instructions[0]._while_cond) {
-                add_asm_instruction(new_ptr(AsmInstruction, "JUMP", cb->next_true, instruction_pointer));
+                _asm_jump(cb->next_true);
+                // add_asm_instruction(new_ptr(AsmInstruction, "JUMP", cb->next_true, instruction_pointer));
             }
             break;
         case _ENDWHILE:
@@ -216,6 +220,7 @@ void AST::translate_snippet(ptr(CodeBlock) cb){
     else {
         if (cb->empty) {
             cb->translated = false;
+            _asm_jump(cb->next_true);
             // add_asm_instruction(new_ptr(AsmInstruction, "JUMP", cb->next_true, instruction_pointer));
             // logme_AST("My next is: " << std::to_string(cb->next_true->instructions[0].type_of_instruction));
         }
@@ -280,8 +285,8 @@ void AST::save_code(std::string file_name) {
     std::ofstream output (file_name);
     for (auto instr : _asm_instructions) {
         if(instr->jump_address == -1) {
-            if(instr->_register == "") {
-                output << instr->code << "  " << instr->_register << std::endl;          
+            if(instr->_register == Register::NONE) {
+                output << instr->code << "  " << to_string(instr->_register) << std::endl;          
             }
             else {
                 output << instr->code << std::endl;                

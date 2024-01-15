@@ -63,18 +63,40 @@
     // }
 // };
 
-// enum Register
+enum Register {A, B, C, D, E, F, G, H, NONE};
 
+inline std::string to_string(Register reg){
+    switch (reg) {
+    case Register::A:
+        return "a";
+    case Register::B:
+        return "b";
+    case Register::C:
+        return "c";
+    case Register::D:
+        return "d";
+    case Register::E:
+        return "e";
+    case Register::F:
+        return "f";
+    case Register::G:
+        return "g";
+    case Register::H:
+        return "h";
+    case Register::NONE:
+        return "";
+    }
+}
 struct AsmInstruction {
     int instr_ptr;
     int jump_address = -1;
     std::string code;
-    std::string _register;
+    Register _register;
     std::shared_ptr<CodeBlock> cb;
 
     AsmInstruction(std::string _code, int ip) : 
         code(_code),
-        _register(""), 
+        _register(Register::NONE), 
         instr_ptr(ip){};
     
     AsmInstruction(std::string _code, ptr(CodeBlock) _cb, int ip) :
@@ -82,9 +104,14 @@ struct AsmInstruction {
         cb(_cb),
         instr_ptr(ip){};
     
+    AsmInstruction(std::string _code, Register reg) : 
+        code(_code),
+        cb(nullptr),
+        _register(reg){};
+    
     AsmInstruction(std::string _code, int _jump_address, int ip) :
         code(_code),
-        _register(""),
+        _register(Register::NONE), 
         jump_address(_jump_address),
         instr_ptr(ip){};
 };
