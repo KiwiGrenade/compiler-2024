@@ -23,11 +23,10 @@ ident handleIf(ident CONDITION_ID, ident COMMANDS_ID);
 ident handleWhile(ident CONDITION_ID, ident COMMAND_ID);
 ident handleRepeat(ident COMMANDS_ID, ident CONDITION_ID);
 ident handleProcCall(ident PROC_CALL_ID);
-#define handleRead handleCondition
-#define handleWrite handleCondition
+#define handleRead handleExpression
+#define handleWrite handleExpression
 
-#define handleExpression handleCondition
-
+ident handleExpression(ident VAL_ID_1, ident OP, int INS_TYPE, ident VAL_ID_2);
 ident handleCondition(ident VAL_ID_1, ident OP, int INS_TYPE, ident VAL_ID_2);
 ident handleIdentifier1(ident PID);
 

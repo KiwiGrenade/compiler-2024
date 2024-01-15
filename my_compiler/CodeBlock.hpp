@@ -67,7 +67,7 @@ enum operator_type {
 struct Instruction {
     bool _while_cond = false;
     int type_of_instruction;
-    // int type_of_operator;
+    int type_of_operator;
     Value left;
     Value right;
     // Expression expr;

@@ -110,8 +110,8 @@ void AST::_asm_mod(Value val1, Value val2, ptr(CodeBlock) cb) {
     
 
 void AST::translate_condition(Instruction ins, ptr(CodeBlock) cb) {
-    logme_AST("Translate condition: ")
-    switch(ins.type_of_instruction) {
+    logme_AST("Translate condition: " << ins.type_of_operator);
+    switch(ins.type_of_operator) {
         case _LESS:
             _asm_cmp_less(ins.left, ins.right, cb);
             break;
@@ -134,8 +134,8 @@ void AST::translate_condition(Instruction ins, ptr(CodeBlock) cb) {
 }
 
 void AST::translate_assignment(Instruction ins, ptr(CodeBlock) cb) {
-    logme_AST("Translate assignment: ")
-        switch(ins.type_of_instruction) {
+    logme_AST("Translate assignment: ");
+        switch(ins.type_of_operator) {
         case _ADD:
             _asm_add(ins.right, cb);
             break;

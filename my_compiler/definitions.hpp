@@ -5,8 +5,6 @@
 #include <iostream>
 #include <memory>
 
-// extern bool verbose;
-
 #define logme(str, head) { std::cerr << "[LOG][" << head << "]" << str << "\n"; }
 
 typedef std::string ident;
@@ -27,7 +25,6 @@ int yyparse();
 
 #include "map"
 
-// void chuj();
 extern size_t currLine;
 
 #endif  // DEFS_HPP

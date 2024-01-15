@@ -404,7 +404,39 @@ ident handleCondition(ident VAL1, ident OP, int INS_TYPE, ident VAL2) {
     set_head();
 
     Instruction instruction;
+    instruction.type_of_instruction = content_type::_COND;
+    instruction.type_of_operator = INS_TYPE;
+    // _WRITE -> no LHS
+
+    if((instruction.type_of_instruction != content_type::_WRITE) &&
+        (instruction.type_of_instruction != content_type::_READ)) {
+        instruction.left = Value(VAL1);
+    }
+    // _NONE -> no RHS
+    if((instruction.type_of_instruction != operator_type::_NONE)) {        
+        instruction.right = Value(VAL2);
+    }
+
+    AST::add_vertex(curr_vertex_id, instruction);
+    // add instructions to added vertex
+
+    std::string log_msg_head = Instruction::get_ins_log_header(instruction.type_of_instruction);
+
+    logme_handle(log_msg_head + instruction.left.name + " " + OP + " "+ instruction.right.name);
+    
+    providers.push_back(EdgeProvider(curr_vertex_id, curr_vertex_id));
+    
+    curr_vertex_id++;
+    return std::to_string(curr_vertex_id - 1);
+}
+
+ident handleExpression(ident VAL1, ident OP, int INS_TYPE, ident VAL2) {
+    set_head();
+
+    Instruction instruction;
     instruction.type_of_instruction = INS_TYPE;
+    instruction.type_of_operator = INS_TYPE;
+
     // _WRITE -> no LHS
 
     if((instruction.type_of_instruction != content_type::_WRITE) &&
