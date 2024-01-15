@@ -161,7 +161,6 @@ ident handleCommands(ident COMMANDS_ID, ident NEXT_COMMAND_ID) {
     return std::to_string(curr_vertex_id - 1);          
 }
 
-//TODO: check if this is right
 ident handleAssignment(ident IDENTIFIER_ID, ident EXPRESSION_ID) {
     
     int expr_id = stoi(EXPRESSION_ID);
@@ -179,8 +178,7 @@ ident handleIfElse(ident CONDITION_ID, ident IF_COMMANDS_ID, ident ELSE_COMMANDS
 
     logme_handle("HANDLE_IF_ELSE");
 
-    AST::add_vertex(curr_vertex_id);
-    AST::vertices[AST::vertices.size() - 1]->empty = 1;
+    AST::add_empty_vertex(curr_vertex_id);
 
     int cond_begin_id = providers[cond_id]._begin_id;
 
@@ -190,7 +188,6 @@ ident handleIfElse(ident CONDITION_ID, ident IF_COMMANDS_ID, ident ELSE_COMMANDS
     int el_comms_begin_id = providers[el_comms_id]._begin_id;
     int el_comms_end_id = providers[el_comms_id]._end_id;
     
-    //TODO: this may be problematic
     AST::add_edge(cond_begin_id, if_comms_begin_id, true);
     AST::add_edge(cond_begin_id, el_comms_begin_id, false);
     AST::add_edge(if_comms_end_id, curr_vertex_id, true);
@@ -210,8 +207,7 @@ ident handleIf(ident CONDITION_ID, ident COMMANDS_ID) {
     
     logme_handle("################# IF #################");
     
-    AST::add_vertex(curr_vertex_id);
-    AST::vertices[AST::vertices.size() - 1]->empty = 1;
+    AST::add_empty_vertex(curr_vertex_id);
 
     int cond_begin_id = providers[cond_id]._begin_id;
     int comms_begin_id = providers[comms_id]._begin_id;
@@ -234,8 +230,7 @@ ident handleWhile(ident CONDITION_ID, ident COMMANDS_ID) {
     int cond_id = stoi(CONDITION_ID);
     int comms_id = stoi(COMMANDS_ID);
     
-    AST::add_vertex(curr_vertex_id);
-    AST::vertices[AST::vertices.size() - 1]->empty = 1;
+    AST::add_empty_vertex(curr_vertex_id);
 
     int cond_begin_id = providers[cond_id]._begin_id;
     int comms_begin_id = providers[comms_id]._begin_id;
@@ -325,8 +320,7 @@ ident handleRepeat(ident COMMANDS_ID, ident CONDITION_ID) {
     int comms_id = stoi(COMMANDS_ID);
     int cond_id = stoi(CONDITION_ID);
     
-    AST::add_vertex(curr_vertex_id);
-    AST::vertices[AST::vertices.size() - 1]->empty = 1;
+    AST::add_empty_vertex(curr_vertex_id);
 
     int cond_begin_id = providers[cond_id]._begin_id;
     int cond_end_id = providers[cond_id]._end_id;
@@ -393,8 +387,7 @@ ident handleProcCall(ident PROC_CALL) {
 
     instruction.proc_id = proc_id;
     
-    AST::add_vertex(curr_vertex_id);
-    AST::vertices[AST::vertices.size() - 1]->instructions.push_back(instruction);
+    AST::add_vertex(curr_vertex_id, instruction);
 
     providers.push_back(EdgeProvider(curr_vertex_id, curr_vertex_id));
 
@@ -405,8 +398,6 @@ ident handleProcCall(ident PROC_CALL) {
 
 ident handleCondition(ident VAL1, ident OP, int INS_TYPE, ident VAL2) {
     set_head();
-
-    AST::add_vertex(curr_vertex_id);
 
     Instruction instruction;
     instruction.type_of_instruction = INS_TYPE;
@@ -420,9 +411,9 @@ ident handleCondition(ident VAL1, ident OP, int INS_TYPE, ident VAL2) {
     if((instruction.type_of_instruction != operator_type::_NONE)) {        
         instruction.right = Value(VAL2);
     }
-    
+
+    AST::add_vertex(curr_vertex_id, instruction);
     // add instructions to added vertex
-    AST::vertices[AST::vertices.size() - 1]->instructions.push_back(instruction);
 
     std::string log_msg_head = Instruction::get_ins_log_header(instruction.type_of_instruction);
 

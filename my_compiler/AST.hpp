@@ -79,14 +79,15 @@ struct AsmInstruction {
 
 struct AST {
     // k in virtual machine
-    static int                          instruction_pointer;
-    static std::vector<int>             head_ids;
-    static std::map<int, ident>         head_map;
-    static std::vector<ptr(CodeBlock)>       vertices;
-    static Architecture                 architecture;
-    static std::vector<ptr(AsmInstruction)>  _asm_instructions;
+    static int                                  instruction_pointer;
+    static std::vector<int>                     head_ids;
+    static std::map<int, ident>                 head_map;
+    static std::vector<ptr(CodeBlock)>          vertices;
+    static Architecture                         architecture;
+    static std::vector<ptr(AsmInstruction)>     _asm_instructions;
 
-    static void add_vertex(size_t id);
+    static void add_vertex(size_t _id, Instruction _ins);
+    static void add_empty_vertex(size_t id);
     static void add_edge(int v_id, int u_id);
     static void add_edge(int v_id, int u_id, bool flag);
     static ptr(CodeBlock) get_vertex(int id);

@@ -20,9 +20,13 @@ ptr(CodeBlock) AST::get_vertex(int _id) {
     throw "Error: node " + std::to_string(_id) + "not found!"; 
 }
 
-void AST::add_vertex(size_t id) {
-    vertices.push_back(new_ptr(CodeBlock, id));
+void AST::add_vertex(size_t _id, Instruction _ins) {
+    vertices.push_back(new_ptr(CodeBlock, _id, _ins));
 };
+
+void AST::add_empty_vertex(size_t _id) {
+    vertices.push_back(new_ptr(CodeBlock, _id, true));
+}
 
 void AST::add_edge(int v_id, int u_id, bool flag) {
     try {
@@ -193,7 +197,7 @@ void AST::translate_snippet(ptr(CodeBlock) cb){
         else {
             if (cb->empty) {
                 cb->translated = false;
-                // add_asm_instruction(new_ptr(AsmInstruction, "JUMP", cb->next_true, instruction_pointer))
+                add_asm_instruction(new_ptr(AsmInstruction, "JUMP", cb->next_true, instruction_pointer));
                 logme_AST("My next is: " << cb->next_true->instructions[0].type_of_instruction);
             }
             logme_AST("after if")
@@ -221,8 +225,6 @@ void AST::translate_main() {
         translate_snippet(head);
         logme_AST("Translation of head: " << it << " END");
     }
-
-    // _asm_halt();
 }
 
 
@@ -230,20 +232,6 @@ void AST::save_code(std::string file_name) {
     std::ofstream output (file_name);
     for (auto asmins : _asm_instructions) {
         output << asmins->code << std::endl;
-        // if (asmins.jump_address == -1) {
-        //     if (asmins._register != nullptr) {
-        //         //log.log(std::to_string(asmins.ip) + "   " + asmins.code + "        " + std::to_string(asmins._register->id) + asmins.constant + asmins.label);
-        //         output <<  "   " + asmins.code + "        " + std::to_string(asmins.reg_id) + asmins.constant + asmins.label << std::endl;
-        //     } else {
-        //         //log.log(std::to_string(asmins.ip) + "   " + asmins.code + "        " +asmins.constant + asmins.label);
-        //                    output << "   " + asmins.code + "        " +asmins.constant + asmins.label << std::endl;;
-
-        //     }
-        // } else {
-        //         //log.log(std::to_string(asmins.ip) + "   " + asmins.code + "        " + std::to_string(asmins.jump_address) + asmins.constant + asmins.label);
-        //            output << "   " + asmins.code + "        " + std::to_string(asmins.jump_address) + asmins.constant + asmins.label << std::endl;
-
-        // }
     }
     output.close();
 }

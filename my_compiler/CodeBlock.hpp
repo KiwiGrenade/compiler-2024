@@ -103,10 +103,9 @@ struct EdgeProvider {
         EdgeProvider(int begin_id, int end_id) : _begin_id(begin_id), _end_id(end_id){};
 };
 
-class CodeBlock {
-    public:
-        bool empty = 0;
-        bool last = 0;
+struct CodeBlock {
+        bool empty = false;
+        bool last = false;
         bool visited = false;
         bool translated = false;
         int ip;
@@ -120,11 +119,14 @@ class CodeBlock {
         std::shared_ptr<CodeBlock> next_false;
         
         CodeBlock(){}
-        CodeBlock(int _id) :id(_id) {
+        CodeBlock(int _id, bool _empty) : id(_id), empty(_empty) {
             next_true = nullptr;
             next_false = nullptr;
             next_true_id = -1;
             next_false_id = -1;
+        }
+        CodeBlock(int _id, Instruction _ins) : id(_id) {
+            instructions.push_back(_ins);
         }
 };
 #endif
