@@ -46,23 +46,23 @@ void handleProcedures2(ident PROCEDURES_ID, ident PROC_HEAD, ident DECLARATIONS_
     head_sig = true;
     logme_handle("to parse: " + PROC_HEAD);
 
-    for(auto arg : argument_ids) {
-        AST::architecture.assert_arg(arg.first, proc_name);
-    }
+    // for(auto arg : argument_ids) {
+    //     AST::architecture.assert_arg(arg.first, proc_name);
+    // }
     
-    for(auto arg_tab : arguments_tab_ids) {
-        AST::architecture.assert_arg_T(arg_tab.first, proc_name);
-    }
+    // for(auto arg_tab : arguments_tab_ids) {
+    //     AST::architecture.assert_arg_T(arg_tab.first, proc_name);
+    // }
 
-    for(auto var : variable_ids)  {
-        AST::architecture.assert_var(var.first, proc_name);
-    }
+    // for(auto var : variable_ids)  {
+    //     AST::architecture.assert_var(var.first, proc_name);
+    // }
 
-    for(auto var_tab : variables_tab_ids) {
-        AST::architecture.assert_var_T(var_tab.first, var_tab.second, proc_name);
-    }
+    // for(auto var_tab : variables_tab_ids) {
+    //     AST::architecture.assert_var_T(var_tab.first, var_tab.second, proc_name);
+    // }
 
-    AST::architecture.assert_ret_reg(proc_name);
+    // AST::architecture.assert_ret_reg(proc_name);
 
     procedure_ids[proc_name] = false;
 
@@ -72,7 +72,7 @@ void handleProcedures2(ident PROCEDURES_ID, ident PROC_HEAD, ident DECLARATIONS_
     AST::head_map[last] = proc_name;
 
     //TODO: \/\/ necessary??
-    AST::architecture.assert_var(proc_name, proc_name);
+    // AST::architecture.assert_var(proc_name, proc_name);
 
     variable_ids.clear();
     variables_tab_ids.clear();
@@ -86,15 +86,15 @@ ident handleProcedures1(ident PROCEDURES_ID, ident PROC_HEAD, ident COMMANDS_ID)
     head_sig = true;
     logme_handle("to parse: " + PROC_HEAD);
 
-    for(auto arg : argument_ids) {
-        AST::architecture.assert_arg(arg.first, proc_name);
-    }
+    // for(auto arg : argument_ids) {
+    //     AST::architecture.assert_arg(arg.first, proc_name);
+    // }
     
-    for(auto arg_tab : arguments_tab_ids) {
-        AST::architecture.assert_arg_T(arg_tab.first, proc_name);
-    }
+    // for(auto arg_tab : arguments_tab_ids) {
+    //     AST::architecture.assert_arg_T(arg_tab.first, proc_name);
+    // }
 
-    AST::architecture.assert_ret_reg(proc_name);
+    // AST::architecture.assert_ret_reg(proc_name);
     
     procedure_ids[proc_name] = false;
     
@@ -105,7 +105,7 @@ ident handleProcedures1(ident PROCEDURES_ID, ident PROC_HEAD, ident COMMANDS_ID)
     AST::head_map[last] = proc_name;
     
     //TODO: \/\/ necessary??
-    AST::architecture.assert_var(proc_name, proc_name);
+    // AST::architecture.assert_var(proc_name, proc_name);
 
     variable_ids.clear();
     variables_tab_ids.clear();
@@ -123,11 +123,11 @@ void handleMain2(ident DECLARATIONS_ID, ident COMMANDS_ID){
     handleMain1();
     
     for(auto var : variable_ids)  {
-        AST::architecture.assert_var(var.first, proc_name);
+        // AST::architecture.assert_var(var.first, proc_name);
     }
 
     for(auto var_tab : variables_tab_ids) {
-        AST::architecture.assert_var_T(var_tab.first, var_tab.second, proc_name);
+        // AST::architecture.assert_var_T(var_tab.first, var_tab.second, proc_name);
     }
     logme_handle("DEFINITION: main");
 }
@@ -144,6 +144,7 @@ void handleMain1(){
 }
 
 ident handleCommands(ident COMMANDS_ID, ident NEXT_COMMAND_ID) {
+    logme_handle("# HANDLE COMMANDS #")
     int comms_id = std::stoi(COMMANDS_ID);
     int next_comm_id = std::stoi(NEXT_COMMAND_ID);
 
@@ -157,6 +158,8 @@ ident handleCommands(ident COMMANDS_ID, ident NEXT_COMMAND_ID) {
 
     providers.push_back(EdgeProvider(comms_begin_id, next_comm_end_id));
 
+    logme_handle("# HANDLE COMMANDS END #")
+
     curr_vertex_id++;
     return std::to_string(curr_vertex_id - 1);          
 }
@@ -166,7 +169,10 @@ ident handleAssignment(ident IDENTIFIER_ID, ident EXPRESSION_ID) {
     int expr_id = stoi(EXPRESSION_ID);
     AST::get_vertex(providers[expr_id]._begin_id)->instructions[0].left = Value(IDENTIFIER_ID);
     AST::get_vertex(providers[expr_id]._begin_id)->instructions[0].type_of_instruction = content_type::_ASS;
+
+    curr_vertex_id--;
     logme_handle("ASSIGNMENT: " + IDENTIFIER_ID + ":=" + EXPRESSION_ID);
+    curr_vertex_id++;
     
     return EXPRESSION_ID;
 }
@@ -195,7 +201,7 @@ ident handleIfElse(ident CONDITION_ID, ident IF_COMMANDS_ID, ident ELSE_COMMANDS
 
     providers.push_back(EdgeProvider(cond_begin_id, curr_vertex_id));
 
-    logme_handle("END_HANDLE_IF_ELSE");
+    logme_handle("HANDLE_IF_ELSE_END");
 
     curr_vertex_id++;
     return std::to_string(curr_vertex_id - 1);   
@@ -205,7 +211,7 @@ ident handleIf(ident CONDITION_ID, ident COMMANDS_ID) {
     int cond_id = stoi(CONDITION_ID);
     int comms_id = stoi(COMMANDS_ID);
     
-    logme_handle("################# IF #################");
+    logme_handle("# HANDLE_IF");
     
     AST::add_empty_vertex(curr_vertex_id);
 
@@ -219,7 +225,7 @@ ident handleIf(ident CONDITION_ID, ident COMMANDS_ID) {
     
     providers.push_back(EdgeProvider(cond_begin_id, curr_vertex_id));
 
-    logme_handle("################# IF #################");
+    logme_handle("# HANDLE_IF_END");
 
     curr_vertex_id++;
     return std::to_string(curr_vertex_id - 1);

@@ -52,6 +52,17 @@ void add_asm_instruction(ptr(AsmInstruction) i) {
     AST::instruction_pointer++;
 }
 
+void AST::_asm_load(Value val, ptr(CodeBlock) cb) {
+    // variable
+    if(val.type == 2) {
+        // std::cout << 
+    }
+    // constant
+    else {
+        // add_asm_instruction(new_ptr(AsmInstruction, "RST"));
+    }
+}
+
 void AST::_asm_read() {
     add_asm_instruction(new_ptr(AsmInstruction, "READ", instruction_pointer));
 }
@@ -62,6 +73,10 @@ void AST::_asm_write() {
 
 void AST::_asm_halt() {
     add_asm_instruction(new_ptr(AsmInstruction, "HALT", instruction_pointer));
+}
+
+void AST::_asm_jump(ptr(CodeBlock) cb) {
+    add_asm_instruction(new_ptr(AsmInstruction, "JUMP", instruction_pointer, cb->ip));
 }
 
 void AST::_asm_cmp_less(Value left, Value right, ptr(CodeBlock) cb) {
@@ -155,11 +170,9 @@ void AST::translate_ins(Instruction ins, ptr(CodeBlock) cb){
         case _WRITE:
             logme_AST("Translate WRITE");
             _asm_write();
-            logme_AST("NULL");
             if(cb->next_true != nullptr && !cb->next_true->empty && cb->next_true->instructions[0]._while_cond) {
                 add_asm_instruction(new_ptr(AsmInstruction, "JUMP", cb->next_true, instruction_pointer));
             }
-            logme_AST("FULL");
             break;
         case _ASS:
             translate_assignment(ins, cb);
@@ -172,10 +185,8 @@ void AST::translate_ins(Instruction ins, ptr(CodeBlock) cb){
             if(cb->next_true != nullptr && !cb->next_true->empty && cb->next_true->instructions[0]._while_cond) {
                 add_asm_instruction(new_ptr(AsmInstruction, "JUMP", cb->next_true, instruction_pointer));
             }
-            logme_AST("WHILE CHECKED");
             break;
         case _ENDWHILE:
-            logme_AST("WHILE CHECKED");
             break;
     }
 }
@@ -185,7 +196,7 @@ void AST::translate_snippet(ptr(CodeBlock) cb){
     if(cb == nullptr || cb->translated) {
         return;
     }
-    logme_AST("Snippet translation: START");
+    logme_AST("Snippet translation: [" << cb->id  << "] START");
     cb->ip = instruction_pointer;
     for(auto instruction : cb->instructions) {
         translate_ins(instruction, cb);
@@ -205,14 +216,14 @@ void AST::translate_snippet(ptr(CodeBlock) cb){
     else {
         if (cb->empty) {
             cb->translated = false;
-            add_asm_instruction(new_ptr(AsmInstruction, "JUMP", cb->next_true, instruction_pointer));
+            // add_asm_instruction(new_ptr(AsmInstruction, "JUMP", cb->next_true, instruction_pointer));
             // logme_AST("My next is: " << std::to_string(cb->next_true->instructions[0].type_of_instruction));
         }
         logme_AST("after if")
         translate_snippet(cb->next_true);
         translate_snippet(cb->next_false);
     }
-    logme_AST("Snippet translation: END");
+    // logme_AST("Snippet translation: [" << cb->id  << "] END");
 }
 
 void AST::translate_main() {
@@ -222,7 +233,8 @@ void AST::translate_main() {
         if(it.second == "main") {
             auto head = get_vertex(it.first);
             logme_AST("Main head number: " << it.first);
-            add_asm_instruction(new_ptr(AsmInstruction,"JUMP", head, instruction_pointer));
+            _asm_jump(head);
+            // add_asm_instruction(new_ptr(AsmInstruction, "JUMP", head, instruction_pointer));
         }
     }
     for(auto it : head_ids) {
@@ -232,6 +244,7 @@ void AST::translate_main() {
         translate_snippet(head);
         logme_AST("Translation of head: " << it << " END");
     }
+    logme_AST("Translate_main: END");
 }
 
 void AST::link_vertices() {
@@ -265,8 +278,18 @@ void AST::spread_proc_name() {
 
 void AST::save_code(std::string file_name) {
     std::ofstream output (file_name);
-    for (auto asmins : _asm_instructions) {
-        output << asmins->code << std::endl;
+    for (auto instr : _asm_instructions) {
+        if(instr->jump_address == -1) {
+            if(instr->_register == "") {
+                output << instr->code << "  " << instr->_register << std::endl;          
+            }
+            else {
+                output << instr->code << std::endl;                
+            }
+        }
+        else {
+            output << instr->code << "  " << instr->jump_address << std::endl;
+        }
     }
     output.close();
 }

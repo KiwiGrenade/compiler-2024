@@ -29,52 +29,65 @@ struct Memory {
     ptr(Register) ret_reg = nullptr;
 };
 struct Architecture {
-    int var_p;
-    std::map<ident, Memory> procedures_memory;
+    // int var_p;
+    // std::map<ident, Memory> procedures_memory;
 
-    ptr(Register) reg_a;
-    ptr(Register) reg_b;
-    ptr(Register) reg_c;
-    ptr(Register) reg_d;
-    ptr(Register) reg_e;
-    ptr(Register) reg_f;
-    ptr(Register) reg_g;
-    ptr(Register) reg_h;
+    // ptr(Register) reg_a;
+    // ptr(Register) reg_b;
+    // ptr(Register) reg_c;
+    // ptr(Register) reg_d;
+    // ptr(Register) reg_e;
+    // ptr(Register) reg_f;
+    // ptr(Register) reg_g;
+    // ptr(Register) reg_h;
 
-    void assert_var(ident var_id, ident proc_id){
-        procedures_memory[proc_id].variables[var_id] = new_ptr(Register, var_p);
-        logme_archt("Add var " + var_id + " ----> " + proc_id);
-        var_p++;
-    }
-    void assert_var_T(ident var_id, int size, ident proc_id){
-        warning("AST::Architecture::assert_var_T() not implemented!");
-    }
-    void assert_arg(ident arg_id, ident proc_id) {
-        procedures_memory[proc_id].variables[arg_id] = new_ptr(Register, var_p, "arg");
-        procedures_memory[proc_id].arg_ids.push_back(arg_id);
-        logme_archt("Add arg " + arg_id + " ----> " + proc_id);
-        var_p++;
-    }
-    void assert_arg_T(ident tab_id, ident proc_id) {
-        warning("AST::Architecture::assert_arg_T() not implemented!");
-    }
-    void assert_ret_reg(ident proc_id) {
-        procedures_memory[proc_id].ret_reg = new_ptr(Register, var_p);
-    }
+    // void assert_var(ident var_id, ident proc_id){
+    //     procedures_memory[proc_id].variables[var_id] = new_ptr(Register, var_p);
+    //     logme_archt("Add var " + var_id + " ----> " + proc_id);
+    //     var_p++;
+    // }
+    // void assert_var_T(ident var_id, int size, ident proc_id){
+    //     warning("AST::Architecture::assert_var_T() not implemented!");
+    // }
+    // void assert_arg(ident arg_id, ident proc_id) {
+    //     procedures_memory[proc_id].variables[arg_id] = new_ptr(Register, var_p, "arg");
+    //     procedures_memory[proc_id].arg_ids.push_back(arg_id);
+    //     logme_archt("Add arg " + arg_id + " ----> " + proc_id);
+    //     var_p++;
+    // }
+    // void assert_arg_T(ident tab_id, ident proc_id) {
+    //     warning("AST::Architecture::assert_arg_T() not implemented!");
+    // }
+    // void assert_ret_reg(ident proc_id) {
+    //     procedures_memory[proc_id].ret_reg = new_ptr(Register, var_p);
+    // }
+};
+
+enum AsmInstruction_type {
 };
 
 struct AsmInstruction {
-    std::string code;
     int instr_ptr;
+    int jump_address = -1;
+    std::string code;
+    std::string _register;
     std::shared_ptr<CodeBlock> cb;
 
     AsmInstruction(std::string _code, int ip) : 
-    code(_code), 
-    instr_ptr(ip){};
+        code(_code),
+        _register(""), 
+        instr_ptr(ip){};
+    
     AsmInstruction(std::string _code, ptr(CodeBlock) _cb, int ip) :
-    code(_code),
-    instr_ptr(ip),
-    cb(_cb){};
+        code(_code),
+        cb(_cb),
+        instr_ptr(ip){};
+    
+    AsmInstruction(std::string _code, int _jump_address, int ip) :
+        code(_code),
+        _register(""),
+        jump_address(_jump_address),
+        instr_ptr(ip){};
 };
 
 struct AST {
@@ -96,6 +109,8 @@ struct AST {
     // ASSEMBLER INSTRUCTIONS
     static void add_instruction(ptr(AsmInstruction) instr);
     
+    static void _asm_load(Value val1, ptr(CodeBlock) cb);
+
     // EXPRESSIONS
     static void _asm_add(Value val1, ptr(CodeBlock) cb);
     static void _asm_sub(Value val1, ptr(CodeBlock) cb);
@@ -111,7 +126,8 @@ struct AST {
     static void _asm_halt();
     static void _asm_write();
     static void _asm_read();
-    
+    // JUMPS
+    static void _asm_jump(ptr(CodeBlock) cb);
     static void translate_assignment(Instruction ins, ptr(CodeBlock) cd);
     static void translate_condition(Instruction ins, ptr(CodeBlock) cd);
     static void translate_ins(Instruction ins, ptr(CodeBlock) cb);
