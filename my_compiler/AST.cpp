@@ -50,25 +50,55 @@ void add_asm_instruction(ptr(AsmInstruction) i) {
     AST::_asm_instructions.push_back(i);
     AST::instruction_pointer++;
 }
-
-void AST::_asm_load(Value val, Register reg) {
-    // variable
-    if(val.type == 2) {
-        // std::cout << 
-    }
-    // constant
-    else {
-        add_asm_instruction(new_ptr(AsmInstruction, "RST", reg));
-        long long n = std::stoll(val.name);
-        while (n > 0) {
-            if (n % 2 == 1) {
-                add_asm_instruction(new_ptr(AsmInstruction, "SHL", reg));
-                add_asm_instruction(new_ptr(AsmInstruction, "INC", reg));
-            } else {
-                add_asm_instruction(new_ptr(AsmInstruction, "SHL", reg));
-            }
-            n /= 2;
+void AST::_asm_load_const(long long val, Register reg) {
+    add_asm_instruction(new_ptr(AsmInstruction, "RST", reg));
+    while (val > 0) {
+        if (val % 2 == 1) {
+            add_asm_instruction(new_ptr(AsmInstruction, "SHL", reg));
+            add_asm_instruction(new_ptr(AsmInstruction, "INC", reg));
+        } else {
+            add_asm_instruction(new_ptr(AsmInstruction, "SHL", reg));
         }
+        val /= 2;
+    }
+    add_asm_instruction(new_ptr(AsmInstruction, "LOAD", reg));
+    add_asm_instruction(new_ptr(AsmInstruction, "PUT", reg));
+}
+
+void AST::_asm_load_var(std::string id, Register reg, ptr(CodeBlock) cb) {
+    int address = architecture.procedures_memory[cb->proc_id].variables[id];
+    _asm_load_const(address, reg);
+}
+
+void AST::_asm_load(Value val, Register reg, ptr(CodeBlock) cb) {
+    long long address;
+    long long cell_address;
+    long long n;
+    if(val.identifier == nullptr) {
+            _asm_load_const(val.val, reg);
+    }
+    else {
+    switch(val.identifier->type) {
+        case PID:
+            // get var addres
+            _asm_load_var(val.identifier->pid, reg, cb);
+            break;
+        case TAB_NUM:
+            address = architecture.procedures_memory[cb->proc_id].variables_tab[val.identifier->pid].first;
+            cell_address = address + val.identifier->ref_num;
+            _asm_load_const(cell_address, reg);
+            break;
+        case TAB_PID:
+            warning("TAB_PID _asm_load to be added!");
+            // _asm_load_var(val.ref_name, reg, cb);
+            // add_asm_instruction(new_ptr(AsmInstruction, "RST", reg));
+            // address = architecture.procedures_memory[cb->proc_id].variables_tab[val.name].first;
+            // _asm_load_const(address, );
+            // add_asm_instruction(new_ptr(AsmInstruction, "ADD", reg));
+            // _asm_load_
+            // _asm_load_const(address, reg);
+            break;
+    }
     }
 }
 
@@ -87,6 +117,15 @@ void AST::_asm_halt() {
 void AST::_asm_jump(ptr(CodeBlock) cb) {
     add_asm_instruction(new_ptr(AsmInstruction, "JUMP", instruction_pointer, cb->ip));
 }
+
+void AST::translate_read() {
+}
+
+void AST::translate_write(Value val, ptr(CodeBlock) cb) {
+    _asm_load(val, Register::A, cb);
+    _asm_write();
+}
+
 
 void AST::_asm_cmp_less(Value left, Value right, ptr(CodeBlock) cb) {
     warning("AST::_asm_cmp_less() not implemented!");
@@ -165,15 +204,6 @@ void AST::translate_assignment(Instruction ins, ptr(CodeBlock) cb) {
     }
 }
 
-void AST::translate_read() {
-
-}
-
-void AST::translate_write(Value val) {
-    _asm_load(val, Register::A);
-    _asm_write();
-}
-
 void AST::translate_ins(Instruction ins, ptr(CodeBlock) cb){
     logme_AST("Translating instruction " << ins.type_of_instruction << " in procedure: " << cb->proc_id);
     switch(ins.type_of_instruction) {
@@ -190,7 +220,7 @@ void AST::translate_ins(Instruction ins, ptr(CodeBlock) cb){
             break;
         case _WRITE:
             logme_AST("Translate WRITE");
-            translate_write(ins.right);
+            translate_write(ins.right, cb);
             if(cb->next_true != nullptr && !cb->next_true->empty && cb->next_true->instructions[0]._while_cond) {
                 _asm_jump(cb->next_true);
                 // add_asm_instruction(new_ptr(AsmInstruction, "JUMP", cb->next_true, instruction_pointer));

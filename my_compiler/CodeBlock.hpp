@@ -3,35 +3,68 @@
 #include <vector>
 #include <string>
 #include <map>
+#include <memory>
+#include "definitions.hpp"
 
-enum value_type {
-    NUM = 1,
-    PID = 2,
-    TAB_NUM = 3,
-    TAB_PID = 4
+enum identifier_type {
+    PID,
+    TAB_PID,
+    TAB_NUM    
 };
 
-struct Value {
-    value_type type;
-    std::string name;
-    bool is_arg = 0;
-    Value() = default;
-    Value(std::string _name) : name(_name){
+struct Identifier {
+    std::string pid;
+    std::string ref_pid;
+    identifier_type type;
+    long long ref_num;
+
+
+    Identifier(std::string _name) {
         char last_char = _name[_name.size() - 1];
-        char second_last_char = _name[_name.size() - 2];
-        if(isdigit(last_char)) {
-            type = value_type::NUM;
-        }
-        else if (last_char == ']') {
-            if (isdigit(second_last_char)) {
-                type = value_type::TAB_NUM;
+        if(last_char == ']') {
+            char second_last_char = _name[_name.size() - 2];
+            if(isdigit(second_last_char)) {
+                type = identifier_type::TAB_NUM;
             }
             else {
-                type = value_type::TAB_PID;
+                type = identifier_type::TAB_PID;
             }
         }
         else {
-            type = value_type::PID;
+            type = identifier_type::PID;
+        }
+
+        int rbrt_idx = _name.find("[");
+        int lbrt_idx = _name.find("]");
+        switch(type) {
+            case PID:
+                pid = _name;
+                break;
+            case TAB_PID:
+                pid = _name.substr(0, rbrt_idx);
+                ref_pid = _name.substr(rbrt_idx, _name.size() - lbrt_idx);
+                break;
+            case TAB_NUM:
+                pid = _name.substr(0, rbrt_idx);
+                ref_num = std::stoi(_name.substr(rbrt_idx, _name.size() - lbrt_idx));
+                break;
+        }
+    }
+};
+
+struct Value {
+    long long val = -1;
+    std::shared_ptr<Identifier> identifier = nullptr;
+
+    Value() = default;
+    Value(std::string _name){
+        bool is_tab = false;
+        std::cout << _name << std::endl;
+        if(isdigit(_name[0])) {
+            val = std::stoi(_name);
+        }
+        else {
+            identifier = new_ptr(Identifier, _name);
         }
     };
 };

@@ -6,7 +6,7 @@ bool                        head_sig = true;
 size_t                      curr_vertex_id = 0;
 
 std::map<int, std::string>  AST::head_map;
-// Architecture                AST::architecture;
+Architecture                AST::architecture;
 std::vector<int>            AST::head_ids;
 std::vector<ptr(CodeBlock)>      AST::vertices;
 
@@ -46,23 +46,23 @@ void handleProcedures2(ident PROCEDURES_ID, ident PROC_HEAD, ident DECLARATIONS_
     head_sig = true;
     logme_handle("to parse: " + PROC_HEAD);
 
-    // for(auto arg : argument_ids) {
-    //     AST::architecture.assert_arg(arg.first, proc_name);
-    // }
+    for(auto arg : argument_ids) {
+        AST::architecture.assert_arg(arg.first, proc_name);
+    }
     
-    // for(auto arg_tab : arguments_tab_ids) {
-    //     AST::architecture.assert_arg_T(arg_tab.first, proc_name);
-    // }
+    for(auto arg_tab : arguments_tab_ids) {
+        AST::architecture.assert_arg_T(arg_tab.first, proc_name);
+    }
 
-    // for(auto var : variable_ids)  {
-    //     AST::architecture.assert_var(var.first, proc_name);
-    // }
+    for(auto var : variable_ids)  {
+        AST::architecture.assert_var(var.first, proc_name);
+    }
 
-    // for(auto var_tab : variables_tab_ids) {
-    //     AST::architecture.assert_var_T(var_tab.first, var_tab.second, proc_name);
-    // }
+    for(auto var_tab : variables_tab_ids) {
+        AST::architecture.assert_var_T(var_tab.first, var_tab.second, proc_name);
+    }
 
-    // AST::architecture.assert_ret_reg(proc_name);
+    AST::architecture.assert_ret_reg(proc_name);
 
     procedure_ids[proc_name] = false;
 
@@ -72,7 +72,7 @@ void handleProcedures2(ident PROCEDURES_ID, ident PROC_HEAD, ident DECLARATIONS_
     AST::head_map[last] = proc_name;
 
     //TODO: \/\/ necessary??
-    // AST::architecture.assert_var(proc_name, proc_name);
+    AST::architecture.assert_var(proc_name, proc_name);
 
     variable_ids.clear();
     variables_tab_ids.clear();
@@ -86,15 +86,15 @@ ident handleProcedures1(ident PROCEDURES_ID, ident PROC_HEAD, ident COMMANDS_ID)
     head_sig = true;
     logme_handle("to parse: " + PROC_HEAD);
 
-    // for(auto arg : argument_ids) {
-    //     AST::architecture.assert_arg(arg.first, proc_name);
-    // }
+    for(auto arg : argument_ids) {
+        AST::architecture.assert_arg(arg.first, proc_name);
+    }
     
-    // for(auto arg_tab : arguments_tab_ids) {
-    //     AST::architecture.assert_arg_T(arg_tab.first, proc_name);
-    // }
+    for(auto arg_tab : arguments_tab_ids) {
+        AST::architecture.assert_arg_T(arg_tab.first, proc_name);
+    }
 
-    // AST::architecture.assert_ret_reg(proc_name);
+    AST::architecture.assert_ret_reg(proc_name);
     
     procedure_ids[proc_name] = false;
     
@@ -105,7 +105,7 @@ ident handleProcedures1(ident PROCEDURES_ID, ident PROC_HEAD, ident COMMANDS_ID)
     AST::head_map[last] = proc_name;
     
     //TODO: \/\/ necessary??
-    // AST::architecture.assert_var(proc_name, proc_name);
+    AST::architecture.assert_var(proc_name, proc_name);
 
     variable_ids.clear();
     variables_tab_ids.clear();
@@ -423,7 +423,7 @@ ident handleCondition(ident VAL1, ident OP, int INS_TYPE, ident VAL2) {
 
     std::string log_msg_head = Instruction::get_ins_log_header(instruction.type_of_instruction);
 
-    logme_handle(log_msg_head + instruction.left.name + " " + OP + " "+ instruction.right.name);
+    // logme_handle(log_msg_head + instruction.left.name + " " + OP + " "+ instruction.right.name);
     
     providers.push_back(EdgeProvider(curr_vertex_id, curr_vertex_id));
     
@@ -454,7 +454,7 @@ ident handleExpression(ident VAL1, ident OP, int INS_TYPE, ident VAL2) {
 
     std::string log_msg_head = Instruction::get_ins_log_header(instruction.type_of_instruction);
 
-    logme_handle(log_msg_head + instruction.left.name + " " + OP + " "+ instruction.right.name);
+    // logme_handle(log_msg_head + instruction.left.name + " " + OP + " "+ instruction.right.name);
     
     providers.push_back(EdgeProvider(curr_vertex_id, curr_vertex_id));
     

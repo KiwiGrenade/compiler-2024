@@ -9,6 +9,46 @@
 #include "definitions.hpp"
 #define logme_archt(str) { logme(str, "MEM")}
 
+
+
+struct Memory {
+    std::map<ident, int> variables;
+    std::map<ident, std::pair<int,int>> variables_tab;
+    std::map<ident, int> args;
+    std::map<ident, int> args_tab;
+    int ret_reg = -1;
+};
+
+struct Architecture {
+    int var_p = 0;
+    std::map<ident, Memory> procedures_memory;
+
+    void assert_var(ident var_id, ident proc_id){
+        procedures_memory[proc_id].variables[var_id] = var_p;
+        logme_archt("Add var " + var_id + " ----> " + proc_id);
+        var_p++;
+    }
+    void assert_var_T(ident var_id, int size, ident proc_id){
+        procedures_memory[proc_id].variables_tab[var_id] = std::pair<int,int>(var_p, size);
+        var_p += size;
+    }
+    void assert_arg(ident arg_id, ident proc_id) {
+        procedures_memory[proc_id].args[arg_id] = var_p;
+        logme_archt("Add arg " + arg_id + " ----> " + proc_id);
+        var_p++;
+    }
+    void assert_arg_T(ident arg_id, ident proc_id) {
+        procedures_memory[proc_id].args_tab[arg_id] = var_p;
+        var_p++;
+    }
+    void assert_ret_reg(ident proc_id) {
+        procedures_memory[proc_id].ret_reg = var_p;
+    }
+    int get_var_addr(ident var_id, ident proc_id) {
+        return procedures_memory[proc_id].variables[var_id];
+    }
+};
+
 enum Register {A, B, C, D, E, F, G, H, NONE};
 
 inline std::string to_string(Register reg){
@@ -68,7 +108,7 @@ struct AST {
     static std::vector<int>                     head_ids;
     static std::map<int, ident>                 head_map;
     static std::vector<ptr(CodeBlock)>          vertices;
-    // static Architecture                         architecture;
+    static Architecture                         architecture;
     static std::vector<ptr(AsmInstruction)>     _asm_instructions;
 
     static void add_vertex(size_t _id, Instruction _ins);
@@ -81,7 +121,9 @@ struct AST {
     // ASSEMBLER INSTRUCTIONS
     static void add_instruction(ptr(AsmInstruction) instr);
     
-    static void _asm_load(Value val1, Register reg);
+    static void _asm_load(Value val1, Register reg, ptr(CodeBlock) cb);
+    static void _asm_load_const(long long val, Register reg);
+    static void _asm_load_var(std::string id, Register reg, ptr(CodeBlock) cb);
 
     // EXPRESSIONS
     static void _asm_add(Value val1, Value val2, ptr(CodeBlock) cb);
@@ -101,7 +143,7 @@ struct AST {
     // JUMPS
     static void _asm_jump(ptr(CodeBlock) cb);
     static void translate_read();
-    static void translate_write(Value val);
+    static void translate_write(Value val, ptr(CodeBlock) cb);
     static void translate_assignment(Instruction ins, ptr(CodeBlock) cd);
     static void translate_condition(Instruction ins, ptr(CodeBlock) cd);
     static void translate_ins(Instruction ins, ptr(CodeBlock) cb);
