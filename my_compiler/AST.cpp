@@ -48,7 +48,7 @@ void AST::add_edge(int v_id, int u_id, bool flag) {
 
 void add_asm_instruction(ptr(AsmInstruction) i) {
     AST::_asm_instructions.push_back(i);
-    AST::instruction_pointer++;
+    // AST::instruction_pointer++;
 }
 void AST::_asm_load_const(long long val, Register reg) {
     add_asm_instruction(new_ptr(AsmInstruction, "RST", reg));
@@ -102,12 +102,31 @@ void AST::_asm_load(Value val, Register reg, ptr(CodeBlock) cb) {
     }
 }
 
+// void AST:::_asm_store_var(Identifier ident, long long val, )
+
+void AST::_asm_store(Value val, ptr(CodeBlock) cb) {
+    switch(val.identifier->type)
+    {
+        case PID:
+            long long address = architecture.procedures_memory[cb->proc_id].variables[val.identifier->pid];
+            _asm_load_const(address, Register::B);
+            add_asm_instruction(new_ptr(AsmInstruction, "GET", Register::H));
+            add_asm_instruction(new_ptr(AsmInstruction, "STORE", Register::B));
+            break;
+    }
+}
+
+void AST::_asm_store_const(Identifier ident, long long val, Register reg) {
+    // _asm_load_const(val, reg);
+    // add_asm_instruction()
+}
+
 void AST::_asm_read() {
-    add_asm_instruction(new_ptr(AsmInstruction, "READ", instruction_pointer));
+    add_asm_instruction(new_ptr(AsmInstruction, "READ", Register::NONE));
 }
 
 void AST::_asm_write() {
-    add_asm_instruction(new_ptr(AsmInstruction, "WRITE", instruction_pointer));
+    add_asm_instruction(new_ptr(AsmInstruction, "WRITE", Register::NONE));
 }
 
 void AST::_asm_halt() {
@@ -141,12 +160,20 @@ void AST::_asm_cmp_neq(Value left, Value right, ptr(CodeBlock) cb) {
 }
 
 void AST::_asm_add(Value val1, Value val2, ptr(CodeBlock) cb) {
-    // _asm_load(val1, Register::B);
-    // _asm_load(val2, Register::C);
-    warning("AST::_asm_add() not implemented!");
+    _asm_load(val1, Register::B, cb);
+    _asm_load(val2, Register::C, cb);
+    // sum is in reg A
+    add_asm_instruction(new_ptr(AsmInstruction, "ADD", Register::B));
+    add_asm_instruction(new_ptr(AsmInstruction, "ADD", Register::C));
+    add_asm_instruction(new_ptr(AsmInstruction, "PUT", Register::H));
+    // add_asm_instruction(new_ptr(AsmInstruction, "PUT", Register::H));
 }
 void AST::_asm_sub(Value val1, Value val2, ptr(CodeBlock) cb) {
-    warning("AST::_asm_sub() not implemented!");
+    _asm_load(val1, Register::B, cb);
+    _asm_load(val2, Register::C, cb);
+    add_asm_instruction(new_ptr(AsmInstruction, "GET", Register::B));
+    add_asm_instruction(new_ptr(AsmInstruction, "SUB", Register::C));
+    add_asm_instruction(new_ptr(AsmInstruction, "PUT", Register::H));
 }
 void AST::_asm_mul(Value val1, Value val2, ptr(CodeBlock) cb) {
     warning("AST::_asm_mul() not implemented!");
@@ -202,6 +229,7 @@ void AST::translate_assignment(Instruction ins, ptr(CodeBlock) cb) {
             _asm_mod(ins.left, ins.right, cb);
             break;
     }
+    _asm_store(ins.left, cb);
 }
 
 void AST::translate_ins(Instruction ins, ptr(CodeBlock) cb){
