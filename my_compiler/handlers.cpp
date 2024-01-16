@@ -148,8 +148,8 @@ ident handleCommands(ident COMMANDS_ID, ident NEXT_COMMAND_ID) {
     int comms_id = std::stoi(COMMANDS_ID);
     int next_comm_id = std::stoi(NEXT_COMMAND_ID);
 
-    int comms_end_id = providers[comms_id]._end_id;
     int comms_begin_id = providers[comms_id]._begin_id;
+    int comms_end_id = providers[comms_id]._end_id;
     
     int next_comm_begin_id = providers[next_comm_id]._begin_id;
     int next_comm_end_id = providers[next_comm_id]._end_id;
@@ -326,16 +326,17 @@ ident handleRepeat(ident COMMANDS_ID, ident CONDITION_ID) {
     
     AST::add_empty_vertex(curr_vertex_id);
 
-    int cond_begin_id = providers[cond_id]._begin_id;
-    int cond_end_id = providers[cond_id]._end_id;
+
     int comms_begin_id = providers[comms_id]._begin_id;
     int comms_end_id = providers[comms_id]._end_id;
+    int cond_begin_id = providers[cond_id]._begin_id;
+    int cond_end_id = providers[cond_id]._end_id;
 
     AST::add_edge(comms_end_id, cond_begin_id, true);
     AST::add_edge(cond_end_id, comms_begin_id, false);
-    AST::add_edge(comms_end_id, curr_vertex_id, true);
+    AST::add_edge(cond_end_id, curr_vertex_id, true);
     
-    providers.push_back(EdgeProvider(cond_begin_id, curr_vertex_id));
+    providers.push_back(EdgeProvider(comms_begin_id, curr_vertex_id));
 
     logme_handle("################# END_REPEAT #################")
     curr_vertex_id++;

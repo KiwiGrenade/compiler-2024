@@ -34,12 +34,8 @@ struct Value {
             type = value_type::PID;
         }
     };
-    // std::string val_to_string() {
-    //     return "%val% = %type:" + std::to_string(type) + "%load:" + load;
-    // }
 };
 
-//TODO: merge those two enums?
 enum content_type {
     _COND = 1,
     _READ = 2,
@@ -85,18 +81,9 @@ struct Instruction {
         else 
             return "COMMAND: ";
     }
-
-    std::string to_asm() {
-        //switch (type_of_instruction) {
-          //  case _type_of_meat::_ASS:
-                //aaaa
-            return "";
-        //}
-    }
 };
 
 
-// TODO: get rid of this. It does not make sense.
 struct EdgeProvider {
         int _begin_id;
         int _end_id;

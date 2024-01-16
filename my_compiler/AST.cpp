@@ -59,7 +59,7 @@ void AST::_asm_load(Value val, ptr(CodeBlock) cb) {
     }
     // constant
     else {
-        // add_asm_instruction(new_ptr(AsmInstruction, "RST"));
+        add_asm_instruction(new_ptr(AsmInstruction, "RST", Register::B));
     }
 }
 
@@ -92,10 +92,11 @@ void AST::_asm_cmp_neq(Value left, Value right, ptr(CodeBlock) cb) {
     warning("AST::_asm_cmp_neq() not implemented!");
 }
 
-void AST::_asm_add(Value val1, ptr(CodeBlock) cb) {
+void AST::_asm_add(Value val1, Value val2, ptr(CodeBlock) cb) {
+    // _asm_load()
     warning("AST::_asm_add() not implemented!");
 }
-void AST::_asm_sub(Value val1, ptr(CodeBlock) cb) {
+void AST::_asm_sub(Value val1, Value val2, ptr(CodeBlock) cb) {
     warning("AST::_asm_sub() not implemented!");
 }
 void AST::_asm_mul(Value val1, Value val2, ptr(CodeBlock) cb) {
@@ -137,10 +138,10 @@ void AST::translate_assignment(Instruction ins, ptr(CodeBlock) cb) {
     logme_AST("Translate assignment: ");
         switch(ins.type_of_operator) {
         case _ADD:
-            _asm_add(ins.right, cb);
+            _asm_add(ins.left, ins.right, cb);
             break;
         case _SUB:
-            _asm_sub(ins.right, cb);
+            _asm_sub(ins.left, ins.right, cb);
             break;
         case _MUL:
             _asm_mul(ins.left, ins.right, cb);
@@ -213,9 +214,9 @@ void AST::translate_snippet(ptr(CodeBlock) cb){
         if (cb->proc_id == "main") {
             _asm_halt();
         }
-        else {
-            // _asm_jump_i(cb);
-        }
+        // else {
+        //     _asm_jump_i(cb);
+        // }
     }
     else {
         if (cb->empty) {
@@ -228,7 +229,7 @@ void AST::translate_snippet(ptr(CodeBlock) cb){
         translate_snippet(cb->next_true);
         translate_snippet(cb->next_false);
     }
-    // logme_AST("Snippet translation: [" << cb->id  << "] END");
+    logme_AST("Snippet translation: [" << cb->id  << "] END");
 }
 
 void AST::translate_main() {
@@ -256,6 +257,9 @@ void AST::link_vertices() {
     logme_AST("Linking vertices: START");
     for(auto ver : vertices) {
         logme_AST("Linking vertice: " << ver->id);
+        logme_AST("next_true_id: " << ver->next_true_id);
+        logme_AST("next_false_id: " << ver->next_false_id);
+        logme_AST("next_false_id: " << ver->next_false_id);
         ver->next_true = get_vertex(ver->next_true_id);
         ver->next_false = get_vertex(ver->next_false_id);
         if (ver->next_false_id == -1 && ver->next_true_id == -1) {
