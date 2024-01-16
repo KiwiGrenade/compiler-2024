@@ -3,7 +3,6 @@
 #include <fstream>
 #include "AST.hpp"
 
-// std::vector<AsmInstruction> _asm_instructions;
 int                                 AST::instruction_pointer = 0;
 std::vector<ptr(AsmInstruction)>    AST::_asm_instructions;
 
@@ -52,14 +51,24 @@ void add_asm_instruction(ptr(AsmInstruction) i) {
     AST::instruction_pointer++;
 }
 
-void AST::_asm_load(Value val, ptr(CodeBlock) cb) {
+void AST::_asm_load(Value val, Register reg) {
     // variable
     if(val.type == 2) {
         // std::cout << 
     }
     // constant
     else {
-        add_asm_instruction(new_ptr(AsmInstruction, "RST", Register::B));
+        add_asm_instruction(new_ptr(AsmInstruction, "RST", reg));
+        long long n = std::stoll(val.name);
+        while (n > 0) {
+            if (n % 2 == 1) {
+                add_asm_instruction(new_ptr(AsmInstruction, "SHL", reg));
+                add_asm_instruction(new_ptr(AsmInstruction, "INC", reg));
+            } else {
+                add_asm_instruction(new_ptr(AsmInstruction, "SHL", reg));
+            }
+            n /= 2;
+        }
     }
 }
 
@@ -72,7 +81,7 @@ void AST::_asm_write() {
 }
 
 void AST::_asm_halt() {
-    add_asm_instruction(new_ptr(AsmInstruction, "HALT", instruction_pointer));
+    add_asm_instruction(new_ptr(AsmInstruction, "HALT", Register::NONE));
 }
 
 void AST::_asm_jump(ptr(CodeBlock) cb) {
@@ -93,7 +102,8 @@ void AST::_asm_cmp_neq(Value left, Value right, ptr(CodeBlock) cb) {
 }
 
 void AST::_asm_add(Value val1, Value val2, ptr(CodeBlock) cb) {
-    // _asm_load()
+    // _asm_load(val1, Register::B);
+    // _asm_load(val2, Register::C);
     warning("AST::_asm_add() not implemented!");
 }
 void AST::_asm_sub(Value val1, Value val2, ptr(CodeBlock) cb) {
@@ -155,6 +165,15 @@ void AST::translate_assignment(Instruction ins, ptr(CodeBlock) cb) {
     }
 }
 
+void AST::translate_read() {
+
+}
+
+void AST::translate_write(Value val) {
+    _asm_load(val, Register::A);
+    _asm_write();
+}
+
 void AST::translate_ins(Instruction ins, ptr(CodeBlock) cb){
     logme_AST("Translating instruction " << ins.type_of_instruction << " in procedure: " << cb->proc_id);
     switch(ins.type_of_instruction) {
@@ -163,7 +182,7 @@ void AST::translate_ins(Instruction ins, ptr(CodeBlock) cb){
             break;
         case _READ:
             logme_AST("Translate READ");
-            _asm_read();
+            translate_read();
             if(cb->next_true != nullptr && !cb->next_true->empty && cb->next_true->instructions[0]._while_cond) {
                 _asm_jump(cb->next_true);
                 // add_asm_instruction(new_ptr(AsmInstruction, "JUMP", cb->next_true, instruction_pointer));
@@ -171,7 +190,7 @@ void AST::translate_ins(Instruction ins, ptr(CodeBlock) cb){
             break;
         case _WRITE:
             logme_AST("Translate WRITE");
-            _asm_write();
+            translate_write(ins.right);
             if(cb->next_true != nullptr && !cb->next_true->empty && cb->next_true->instructions[0]._while_cond) {
                 _asm_jump(cb->next_true);
                 // add_asm_instruction(new_ptr(AsmInstruction, "JUMP", cb->next_true, instruction_pointer));
@@ -221,7 +240,7 @@ void AST::translate_snippet(ptr(CodeBlock) cb){
     else {
         if (cb->empty) {
             cb->translated = false;
-            _asm_jump(cb->next_true);
+            // _asm_jump(cb->next_true);
             // add_asm_instruction(new_ptr(AsmInstruction, "JUMP", cb->next_true, instruction_pointer));
             // logme_AST("My next is: " << std::to_string(cb->next_true->instructions[0].type_of_instruction));
         }
@@ -239,7 +258,7 @@ void AST::translate_main() {
         if(it.second == "main") {
             auto head = get_vertex(it.first);
             logme_AST("Main head number: " << it.first);
-            _asm_jump(head);
+            // _asm_jump(head);
             // add_asm_instruction(new_ptr(AsmInstruction, "JUMP", head, instruction_pointer));
         }
     }
@@ -287,9 +306,10 @@ void AST::spread_proc_name() {
 
 void AST::save_code(std::string file_name) {
     std::ofstream output (file_name);
+    logme_AST("To string:" << to_string(Register::A));
     for (auto instr : _asm_instructions) {
         if(instr->jump_address == -1) {
-            if(instr->_register == Register::NONE) {
+            if(instr->_register != Register::NONE) {
                 output << instr->code << "  " << to_string(instr->_register) << std::endl;          
             }
             else {

@@ -81,7 +81,7 @@ struct AST {
     // ASSEMBLER INSTRUCTIONS
     static void add_instruction(ptr(AsmInstruction) instr);
     
-    static void _asm_load(Value val1, ptr(CodeBlock) cb);
+    static void _asm_load(Value val1, Register reg);
 
     // EXPRESSIONS
     static void _asm_add(Value val1, Value val2, ptr(CodeBlock) cb);
@@ -100,6 +100,8 @@ struct AST {
     static void _asm_read();
     // JUMPS
     static void _asm_jump(ptr(CodeBlock) cb);
+    static void translate_read();
+    static void translate_write(Value val);
     static void translate_assignment(Instruction ins, ptr(CodeBlock) cd);
     static void translate_condition(Instruction ins, ptr(CodeBlock) cd);
     static void translate_ins(Instruction ins, ptr(CodeBlock) cb);
