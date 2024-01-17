@@ -58,7 +58,6 @@ struct Value {
     Value() = default;
     Value(std::string _name){
         bool is_tab = false;
-        std::cout << _name << std::endl;
         if(isdigit(_name[0])) {
             val = std::stoi(_name);
         }
@@ -155,6 +154,10 @@ struct CodeBlock {
         }
         CodeBlock(int _id, Instruction _ins) : id(_id) {
             instructions.push_back(_ins);
+            next_true = nullptr;
+            next_false = nullptr;
+            next_true_id = -1;
+            next_false_id = -1;
         }
 };
 #endif

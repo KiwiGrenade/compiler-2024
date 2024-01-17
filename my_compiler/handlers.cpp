@@ -144,11 +144,11 @@ void handleMain2(ident DECLARATIONS_ID, ident COMMANDS_ID){
     handleMain1();
     
     for(auto var : variable_ids)  {
-        // AST::architecture.assert_var(var.first, proc_name);
+        AST::architecture.assert_var(var.first, proc_name);
     }
 
     for(auto var_tab : variable_tab_ids) {
-        // AST::architecture.assert_var_T(var_tab.first, var_tab.second, proc_name);
+        AST::architecture.assert_var_T(var_tab.first, var_tab.second, proc_name);
     }
     logme_handle("DEFINITION: main");
 }
@@ -469,26 +469,31 @@ ident handleExpression(ident VAL1, ident OP, int INS_TYPE, ident VAL2) {
     instruction.type_of_operator = INS_TYPE;
 
     // _WRITE -> no LHS
-    if((instruction.type_of_instruction != content_type::_WRITE) &&
-        (instruction.type_of_instruction != content_type::_READ)) {
+    if((INS_TYPE != content_type::_WRITE) &&
+        (INS_TYPE != content_type::_READ)) {
         instruction.left = Value(VAL1);
         checkIfInitialized(instruction.left);
     }
     // _NONE -> no RHS
-    if((instruction.type_of_instruction != operator_type::_NONE)) {        
+    if((INS_TYPE != operator_type::_NONE)) {        
         instruction.right = Value(VAL2);
-        if((instruction.type_of_instruction != content_type::_WRITE) &&
-            (instruction.type_of_instruction != content_type::_READ)) {
+        if((INS_TYPE != content_type::_WRITE) &&
+            (INS_TYPE != content_type::_READ)) {
             checkIfInitialized(instruction.right);
         }
     }
 
+    if(INS_TYPE == content_type::_READ) {
+        if(instruction.right.identifier->type == PID) {
+            variable_ids[instruction.right.identifier->pid]++;
+        }
+    }
     AST::add_vertex(curr_vertex_id, instruction);
     // add instructions to added vertex
 
     std::string log_msg_head = Instruction::get_ins_log_header(instruction.type_of_instruction);
 
-    // logme_handle(log_msg_head + instruction.left.name + " " + OP + " "+ instruction.right.name);
+    logme_handle(log_msg_head + VAL1 + " " + OP + " "+ VAL2);
     
     providers.push_back(EdgeProvider(curr_vertex_id, curr_vertex_id));
     

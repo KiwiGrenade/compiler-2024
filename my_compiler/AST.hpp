@@ -102,28 +102,15 @@ struct AsmInstruction {
         instr_ptr(ip){};
 };
 
-struct AST {
-    // k in virtual machine
-    static int                                  instruction_pointer;
-    static std::vector<int>                     head_ids;
-    static std::map<int, ident>                 head_map;
-    static std::vector<ptr(CodeBlock)>          vertices;
-    static Architecture                         architecture;
-    static std::vector<ptr(AsmInstruction)>     _asm_instructions;
-
-    static void add_vertex(size_t _id, Instruction _ins);
-    static void add_empty_vertex(size_t id);
-    static void add_edge(int v_id, int u_id);
-    static void add_edge(int v_id, int u_id, bool flag);
-    static ptr(CodeBlock) get_vertex(int id);
-    virtual ~AST() = default;
-    
+class AST {
+private:
     // ASSEMBLER INSTRUCTIONS
     static void add_instruction(ptr(AsmInstruction) instr);
-    
+
+    static void _asm_put_const(long long val, Register reg);
+
     static void _asm_load(Value val1, Register reg, ptr(CodeBlock) cb);
-    static void _asm_load_const(long long val, Register reg);
-    static void _asm_load_var(std::string id, Register reg, ptr(CodeBlock) cb);
+    // static void _asm_load_var(std::string id, Register reg, ptr(CodeBlock) cb);
 
     static void _asm_store_const(Identifier id, long long val, Register reg);
     static void _asm_store(Value val, ptr(CodeBlock) cb);
@@ -145,18 +132,32 @@ struct AST {
     static void _asm_read();
     // JUMPS
     static void _asm_jump(ptr(CodeBlock) cb);
-    static void translate_read();
+    static void translate_read(Value val, ptr(CodeBlock) cb);
     static void translate_write(Value val, ptr(CodeBlock) cb);
     static void translate_assignment(Instruction ins, ptr(CodeBlock) cd);
     static void translate_condition(Instruction ins, ptr(CodeBlock) cd);
     static void translate_ins(Instruction ins, ptr(CodeBlock) cb);
     static void translate_snippet(ptr(CodeBlock) cb);
-    static void translate_main();
 
+public:
+    // k in virtual machine 
+    static int                                  instruction_pointer;
+    static std::vector<int>                     head_ids;
+    static std::map<int, ident>                 head_map;
+    static std::vector<ptr(CodeBlock)>          vertices;
+    static Architecture                         architecture;
+    static std::vector<ptr(AsmInstruction)>     _asm_instructions;
+
+    static void add_vertex(size_t _id, Instruction _ins);
+    static void add_empty_vertex(size_t id);
+    static ptr(CodeBlock) get_vertex(int id);
+    static void add_edge(int v_id, int u_id, bool flag);
+    virtual ~AST() = default;
     static void link_vertices();
     static void preorder_traversal_proc_id(ptr(CodeBlock) cb, std::string proc_id);
     static void spread_proc_name();
     static void save_code(std::string file_name);
+    static void translate_main();
 };
 
 #endif
