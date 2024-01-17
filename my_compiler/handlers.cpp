@@ -13,12 +13,13 @@ std::vector<ptr(CodeBlock)>      AST::vertices;
 std::vector<EdgeProvider>   providers;
 
 // checking parameters
-std::map<ident, bool>       procedure_ids;
-std::map<ident, bool>       variable_ids;
-std::map<ident, bool>       argument_ids;
-std::map<ident, bool>       arguments_tab_ids;
-std::map<ident, int>        variables_tab_ids;
-ident                       proc_name;
+
+std::map<ident, int>       procedure_ids;
+std::map<ident, int>       variable_ids;
+std::map<ident, int>       argument_ids;
+std::map<ident, int>       argument_tab_ids;
+std::map<ident, int>       variable_tab_ids;
+ident                      proc_name;
 
 std::string log_head = "H"; // for handlers
 
@@ -35,11 +36,31 @@ void set_head() {
 }
 
 bool isIdUsed(ident id) {
-    if(variable_ids.count(id) || argument_ids.count(id) || procedure_ids.count(id) || arguments_tab_ids.count(id) || variables_tab_ids.count(id)) {
+    if(variable_ids.count(id) || argument_ids.count(id) || procedure_ids.count(id) || argument_tab_ids.count(id) || variable_tab_ids.count(id)) {
         error("Identifier " + id + " is already in use!", true);
         return true;
     }
     return false;
+}
+
+
+void checkIfInitialized(Value val) {
+    if(val.identifier != nullptr) {
+        ident pid = val.identifier->pid;
+        ident ref_pid = val.identifier->ref_pid;
+        switch (val.identifier->type)
+        {
+        case PID:
+            if(variable_ids[pid] == 1) {
+                error("Variable: " + pid + " not initialized!", true);
+            }
+            break;
+        case TAB_PID:
+            if(variable_ids[ref_pid] == 1) {
+                error("Variable: " + ref_pid + " not initialized!", true);
+            }
+        }
+    }
 }
 
 void handleProcedures2(ident PROCEDURES_ID, ident PROC_HEAD, ident DECLARATIONS_ID, ident COMMANDS_ID) {
@@ -50,7 +71,7 @@ void handleProcedures2(ident PROCEDURES_ID, ident PROC_HEAD, ident DECLARATIONS_
         AST::architecture.assert_arg(arg.first, proc_name);
     }
     
-    for(auto arg_tab : arguments_tab_ids) {
+    for(auto arg_tab : argument_tab_ids) {
         AST::architecture.assert_arg_T(arg_tab.first, proc_name);
     }
 
@@ -58,7 +79,7 @@ void handleProcedures2(ident PROCEDURES_ID, ident PROC_HEAD, ident DECLARATIONS_
         AST::architecture.assert_var(var.first, proc_name);
     }
 
-    for(auto var_tab : variables_tab_ids) {
+    for(auto var_tab : variable_tab_ids) {
         AST::architecture.assert_var_T(var_tab.first, var_tab.second, proc_name);
     }
 
@@ -75,9 +96,9 @@ void handleProcedures2(ident PROCEDURES_ID, ident PROC_HEAD, ident DECLARATIONS_
     AST::architecture.assert_var(proc_name, proc_name);
 
     variable_ids.clear();
-    variables_tab_ids.clear();
+    variable_tab_ids.clear();
     argument_ids.clear();
-    arguments_tab_ids.clear();
+    argument_tab_ids.clear();
 
     logme_handle("PROCEDURE: definition of [" + proc_name + "]");
 }
@@ -90,7 +111,7 @@ ident handleProcedures1(ident PROCEDURES_ID, ident PROC_HEAD, ident COMMANDS_ID)
         AST::architecture.assert_arg(arg.first, proc_name);
     }
     
-    for(auto arg_tab : arguments_tab_ids) {
+    for(auto arg_tab : argument_tab_ids) {
         AST::architecture.assert_arg_T(arg_tab.first, proc_name);
     }
 
@@ -108,9 +129,9 @@ ident handleProcedures1(ident PROCEDURES_ID, ident PROC_HEAD, ident COMMANDS_ID)
     AST::architecture.assert_var(proc_name, proc_name);
 
     variable_ids.clear();
-    variables_tab_ids.clear();
+    variable_tab_ids.clear();
     argument_ids.clear();
-    arguments_tab_ids.clear();
+    argument_tab_ids.clear();
     
     logme_handle("PROCEDURE: definition of [" + proc_name + "]");
     return proc_name;
@@ -126,7 +147,7 @@ void handleMain2(ident DECLARATIONS_ID, ident COMMANDS_ID){
         // AST::architecture.assert_var(var.first, proc_name);
     }
 
-    for(auto var_tab : variables_tab_ids) {
+    for(auto var_tab : variable_tab_ids) {
         // AST::architecture.assert_var_T(var_tab.first, var_tab.second, proc_name);
     }
     logme_handle("DEFINITION: main");
@@ -165,9 +186,22 @@ ident handleCommands(ident COMMANDS_ID, ident NEXT_COMMAND_ID) {
 }
 
 ident handleAssignment(ident IDENTIFIER_ID, ident EXPRESSION_ID) {
-    
     int expr_id = stoi(EXPRESSION_ID);
-    AST::get_vertex(providers[expr_id]._begin_id)->instructions[0].left = Value(IDENTIFIER_ID);
+    Value val = Value(IDENTIFIER_ID);
+
+    switch (val.identifier->type)
+    {
+        case PID:
+            variable_ids[val.identifier->pid]++;
+        case TAB_PID:
+            logme_handle("TAB_PID: " + val.identifier->ref_pid);
+            if(variable_ids[val.identifier->ref_pid] == 1) {
+                error("Variable: " + val.identifier->ref_pid + " not initialized!", true);
+            }
+        break;
+    }
+
+    AST::get_vertex(providers[expr_id]._begin_id)->instructions[0].left = val;
     AST::get_vertex(providers[expr_id]._begin_id)->instructions[0].type_of_instruction = content_type::_ASS;
 
     curr_vertex_id--;
@@ -266,17 +300,15 @@ ident handleProcHead(ident PROC_NAME, ident ARGS_DECL){
     ident arg_pid = "";
     bool is_table = false;
 
-    std::cout << ARGS_DECL << std::endl;
-
     for(auto c : ARGS_DECL) {
         if(c == ',') {
             if(!isIdUsed(arg_pid)) {
                 if(is_table) {
-                    arguments_tab_ids[arg_pid] = false;
+                    argument_tab_ids[arg_pid] = 1;
                     logme_handle("Declare arg_tab: " << arg_pid << " ---> " << PROC_NAME)
                 }
                 else {
-                    argument_ids[arg_pid] = false;
+                    argument_ids[arg_pid] = 1;
                     logme_handle("Declare arg: " << arg_pid << " ---> " << PROC_NAME)
                 }
             }
@@ -292,11 +324,11 @@ ident handleProcHead(ident PROC_NAME, ident ARGS_DECL){
     }
     if(!isIdUsed(arg_pid)) {
         if(is_table) {
-            arguments_tab_ids[arg_pid] = false;
+            argument_tab_ids[arg_pid] = 1;
             logme_handle("Declare arg_tab: " << arg_pid << " ---> " << PROC_NAME)
         }
         else {
-            argument_ids[arg_pid] = false;
+            argument_ids[arg_pid] = 1;
             logme_handle("Declare arg: " << arg_pid << " ---> " << PROC_NAME)
         }
     }
@@ -307,14 +339,14 @@ ident handleProcHead(ident PROC_NAME, ident ARGS_DECL){
 ident handleVDecl(ident PID) {
     isIdUsed(PID);
     logme_handle("Declare var: " + PID);
-    variable_ids[PID] = false;
+    variable_ids[PID] = 1;
     return PID;
 }
 
 ident handleTDecl(ident PID, ident num) {
     isIdUsed(PID);
     logme_handle("Declare table: " + PID + "[" + num + "]")
-    variables_tab_ids[PID] = stoi(num);
+    variable_tab_ids[PID] = 1;
     return PID;
 }
 
@@ -352,7 +384,7 @@ ident handleProcCall(ident PROC_CALL) {
     instruction.type_of_instruction = content_type::_CALL;
     
     //TODO: check if you can optimise this
-    //TODO: include variables_tab_ids into argument_ids
+    //TODO: include variable_tab_ids into argument_ids
 
     bool is_declared = false;
     int i = 0;
@@ -407,16 +439,14 @@ ident handleCondition(ident VAL1, ident OP, int INS_TYPE, ident VAL2) {
     Instruction instruction;
     instruction.type_of_instruction = content_type::_COND;
     instruction.type_of_operator = INS_TYPE;
+    
     // _WRITE -> no LHS
-
-    if((instruction.type_of_instruction != content_type::_WRITE) &&
-        (instruction.type_of_instruction != content_type::_READ)) {
-        instruction.left = Value(VAL1);
-    }
+    instruction.left = Value(VAL1);
     // _NONE -> no RHS
-    if((instruction.type_of_instruction != operator_type::_NONE)) {        
-        instruction.right = Value(VAL2);
-    }
+    instruction.right = Value(VAL2);
+
+    checkIfInitialized(instruction.left);
+    checkIfInitialized(instruction.right);
 
     AST::add_vertex(curr_vertex_id, instruction);
     // add instructions to added vertex
@@ -439,14 +469,18 @@ ident handleExpression(ident VAL1, ident OP, int INS_TYPE, ident VAL2) {
     instruction.type_of_operator = INS_TYPE;
 
     // _WRITE -> no LHS
-
     if((instruction.type_of_instruction != content_type::_WRITE) &&
         (instruction.type_of_instruction != content_type::_READ)) {
         instruction.left = Value(VAL1);
+        checkIfInitialized(instruction.left);
     }
     // _NONE -> no RHS
     if((instruction.type_of_instruction != operator_type::_NONE)) {        
         instruction.right = Value(VAL2);
+        if((instruction.type_of_instruction != content_type::_WRITE) &&
+            (instruction.type_of_instruction != content_type::_READ)) {
+            checkIfInitialized(instruction.right);
+        }
     }
 
     AST::add_vertex(curr_vertex_id, instruction);
@@ -462,13 +496,22 @@ ident handleExpression(ident VAL1, ident OP, int INS_TYPE, ident VAL2) {
     return std::to_string(curr_vertex_id - 1);
 }
 
-ident handleIdentifier1(ident PID) {
-    if((!variable_ids.count(PID)) && (!argument_ids.count(PID)) && (!variables_tab_ids.count(PID)) && (!arguments_tab_ids.count(PID))) {
-        error("Variable [" + PID + "] has not been declared!", true);       
+void handleIdentifier1(ident PID) {
+    if(variable_tab_ids[PID] > 0 || argument_tab_ids[PID] > 0) {
+        error("Wrong use of table [" + PID + "]!", true);
     }
-    return PID;
+    if((variable_ids[PID] == 0) && (argument_ids[PID] == 0)) {
+        error("Variable [" + PID + "] has not been declared!", true);
+    }
 }
 
-ident handleIdentifier3(ident PID, ident NUM) {
-    int idx = std::stoi(NUM);
+void handleIdentifier2(ident TAB_PID) {
+    if((!variable_tab_ids.count(TAB_PID)) && (!argument_tab_ids.count(TAB_PID))) {
+        error("Table [" + TAB_PID + "] has not been declared!", true);
+    }
+}
+
+void handleIdentifier3(ident TAB_PID, ident IDX_PID) {
+    handleIdentifier2(TAB_PID);
+    handleIdentifier1(IDX_PID);
 }

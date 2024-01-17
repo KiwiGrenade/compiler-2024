@@ -28,6 +28,9 @@ ident handleProcCall(ident PROC_CALL_ID);
 
 ident handleExpression(ident VAL_ID_1, ident OP, int INS_TYPE, ident VAL_ID_2);
 ident handleCondition(ident VAL_ID_1, ident OP, int INS_TYPE, ident VAL_ID_2);
-ident handleIdentifier1(ident PID);
+void handleIdentifier1(ident PID);
+void handleIdentifier2(ident TAB_PID);
+void handleIdentifier3(ident TAB_PID, ident IDX_PID);
+
 
 #endif  // HANDLERS_HPP

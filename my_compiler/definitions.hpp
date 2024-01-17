@@ -8,6 +8,7 @@
 #define logme(str, head) { std::cerr << "[LOG][" << head << "]" << str << "\n"; }
 
 typedef std::string ident;
+typedef long long Address;
 #define ptr(type) std::shared_ptr<type>
 #define new_ptr(type, ...) std::make_shared<type>(__VA_ARGS__)
 

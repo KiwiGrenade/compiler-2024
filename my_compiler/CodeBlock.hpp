@@ -18,7 +18,6 @@ struct Identifier {
     identifier_type type;
     long long ref_num;
 
-
     Identifier(std::string _name) {
         char last_char = _name[_name.size() - 1];
         if(last_char == ']') {
@@ -34,19 +33,19 @@ struct Identifier {
             type = identifier_type::PID;
         }
 
-        int rbrt_idx = _name.find("[");
-        int lbrt_idx = _name.find("]");
+        int lbrt_idx = _name.find("[");
+        int rbrt_idx = _name.find("]");
         switch(type) {
             case PID:
                 pid = _name;
                 break;
             case TAB_PID:
-                pid = _name.substr(0, rbrt_idx);
-                ref_pid = _name.substr(rbrt_idx, _name.size() - lbrt_idx);
+                pid = _name.substr(0, lbrt_idx);
+                ref_pid = _name.substr(lbrt_idx + 1, _name.size() - rbrt_idx);
                 break;
             case TAB_NUM:
-                pid = _name.substr(0, rbrt_idx);
-                ref_num = std::stoi(_name.substr(rbrt_idx, _name.size() - lbrt_idx));
+                pid = _name.substr(0, lbrt_idx);
+                ref_num = std::stoi(_name.substr(lbrt_idx + 1, _name.size() - rbrt_idx));
                 break;
         }
     }
@@ -121,6 +120,15 @@ struct EdgeProvider {
         int _begin_id;
         int _end_id;
         EdgeProvider(int begin_id, int end_id) : _begin_id(begin_id), _end_id(end_id){};
+};
+
+struct Procedure {
+    ident name;
+    std::map<ident, Address> variables;
+    std::map<ident, Address> variables_tab;
+    std::map<ident, Address> arguments;
+    std::map<ident, Address> arguments_tab;
+    Address ret_address = -1;
 };
 
 struct CodeBlock {
