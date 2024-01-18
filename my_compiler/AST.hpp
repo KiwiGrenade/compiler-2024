@@ -72,6 +72,9 @@ struct Procedure {
     std::map<ident, ptr(Argument)> args;
     int ret_reg = -1;
 
+    Procedure() = default;
+
+    Procedure(ident _name) : name(_name){};
     ptr(Argument) get_arg_at_idx(int _idx) {
         ptr(Argument) result = nullptr;
         for(auto arg : args) {

@@ -71,7 +71,6 @@ void AST::_asm_put_const(long long val, Register reg) {
 
 void AST::_asm_load(Value val, Register reg, ptr(CodeBlock) cb) {
     long long address;
-    long long cell_address;
     long long n;
     if(val.identifier == nullptr) {
             _asm_put_const(val.val, reg);
@@ -86,8 +85,11 @@ void AST::_asm_load(Value val, Register reg, ptr(CodeBlock) cb) {
             break;
         case TAB_NUM:
             address = architecture.procedures[cb->proc_id]->tables[val.identifier->pid]->address;
-            cell_address = address + val.identifier->ref_num;
-            _asm_put_const(cell_address, reg);
+            address += val.identifier->ref_num;
+            logme_AST("REFNUM: " + val.identifier->ref_num);
+            _asm_put_const(address, reg);
+            add_asm_instruction(new_ptr(AsmInstruction, "LOAD", reg));
+
             break;
         case TAB_PID:
             warning("TAB_PID _asm_load to be added!");
@@ -107,16 +109,20 @@ void AST::_asm_load(Value val, Register reg, ptr(CodeBlock) cb) {
 
 void AST::_asm_store(Value val, ptr(CodeBlock) cb) {
     long long val_addr;
+    ptr(Procedure) curr_proc = architecture.procedures[cb->proc_id];
+    // if(curr_proc.)
+
     switch(val.identifier->type)
     {
         case PID:
-            val_addr = architecture.procedures[cb->proc_id]->variables[val.identifier->pid]->address;
+            val_addr = curr_proc->variables[val.identifier->pid]->address;
             _asm_put_const(val_addr, Register::B);
             add_asm_instruction(new_ptr(AsmInstruction, "STORE", Register::B));
             break;
         case TAB_NUM:
-            val_addr = architecture.procedures[cb->proc_id]->tables[val.identifier->pid]->address;
+            val_addr = curr_proc->tables[val.identifier->pid]->address;
             val_addr += val.identifier->ref_num;
+            logme_AST("REFNUM: " + val.identifier->ref_num);
             _asm_put_const(val_addr, Register::B);
             add_asm_instruction(new_ptr(AsmInstruction, "STORE", Register::B));
             break;

@@ -13,8 +13,7 @@ std::vector<EdgeProvider>   providers;
 Address MemoryManager::var_p = 0;
 
 // checking parameters
-
-ptr(Procedure)                   curr_proc;
+ptr(Procedure)                   curr_proc = new_ptr(Procedure, "main");
 
 std::string log_head = "H"; // for handlers
 
@@ -119,6 +118,10 @@ void handleMain1(){
     lt--;
     int index = lt->first;
     AST::head_map[index] = "main";
+
+
+    AST::architecture.add_procedure(curr_proc);
+
     logme_handle("DEFINITION: main");
 }
 
@@ -295,7 +298,7 @@ ident handleProcHead(ident PROC_NAME, ident ARGS_DECL){
 
 ident handleVDecl(ident PID) {
     isIdUsed(PID);
-    // logme_handle("Declare table: " + PID + "[" + num + "]")
+    logme_handle("Declare var: " + PID);
     curr_proc->variables[PID] = new_ptr(Variable, PID);
     return PID;
 }
@@ -303,7 +306,7 @@ ident handleVDecl(ident PID) {
 ident handleTDecl(ident PID, ident num) {
     isIdUsed(PID);
     long long val = std::stoll(num);
-    // logme_handle("Declare table: " + PID + "[" + num + "]")
+    logme_handle("Declare table: " + PID + "[" + num + "]");
     curr_proc->tables[PID] = new_ptr(Table, PID, val);
     return PID;
 }
