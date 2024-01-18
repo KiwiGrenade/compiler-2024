@@ -182,8 +182,8 @@ private:
     static void _asm_load(Value val1, Register reg, ptr(CodeBlock) cb);
     // static void _asm_load_var(std::string id, Register reg, ptr(CodeBlock) cb);
 
-    static void _asm_store_const(Identifier id, long long val, Register reg);
-    static void _asm_store(Value val, ptr(CodeBlock) cb);
+    // static void _asm_store_const(Identifier id, long long val, Register reg);
+    static void _asm_store(Value val, Register reg, ptr(CodeBlock) cb);
 
     // EXPRESSIONS
     static void _asm_add(Value val1, Value val2, ptr(CodeBlock) cb);
