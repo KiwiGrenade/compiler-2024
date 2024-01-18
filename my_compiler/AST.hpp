@@ -1,7 +1,7 @@
 #ifndef AST_HPP
 #define AST_HPP
 
-#include <map>
+#include <unordered_map>
 #include <memory>
 #include <vector>
 #include <fstream>
@@ -9,44 +9,111 @@
 #include "definitions.hpp"
 #define logme_archt(str) { logme(str, "MEM")}
 
+typedef long long Address;
 
+// struct Pointer {
+//     Address address;
 
-struct Memory {
-    std::map<ident, int> variables;
-    std::map<ident, std::pair<int,int>> variables_tab;
-    std::map<ident, int> args;
-    std::map<ident, int> args_tab;
+// }
+
+struct MemoryManager {
+    static Address var_p;
+    static Address get_address() {
+        var_p++;
+        return var_p-1;
+    }
+    // static void zero_var_p() {
+    //     var_p = 0;
+    // }
+};
+
+struct Pointer {
+    ident name;
+    Address address;
+    Pointer(ident _name) : name(_name), address(MemoryManager::get_address()) {};
+};
+
+struct Argument : public Pointer {
+    int position;
+    bool table;
+    Argument(ident _name, int _pos, bool _table) : Pointer(_name), position(_pos), table(_table){};
+};
+
+struct Variable : public Pointer {
+    bool initialized;
+
+    Variable(ident _name) : Pointer(_name),  initialized(false){};
+    void set_initialized() {
+        initialized = true;
+    }
+};
+
+struct Table {
+    //TODO: change to array
+    ident name;
+    Address address;
+    std::vector<ptr(Variable)> cells;
+    
+    Table(ident _name, long long size) {
+        cells.reserve(size);
+        ident cell_name;
+        for(long long i = 0; i < size; i++) {
+            cell_name = _name + "_" + std::to_string(i);
+            cells.push_back(new_ptr(Variable, cell_name));
+        }
+        address = cells.at(0)->address;
+    }
+};
+
+struct Procedure {
+    ident name;
+    std::unordered_map<ident, ptr(Variable)> variables;
+    std::unordered_map<ident, ptr(Table)> tables;
+    std::map<ident, ptr(Argument)> args;
     int ret_reg = -1;
+
+    ptr(Argument) get_arg_at_idx(int _idx) {
+        ptr(Argument) result = nullptr;
+        for(auto arg : args) {
+            if(arg.second->position == _idx) {
+                result = arg.second;
+            }
+        }
+        return result;
+    }
 };
 
 struct Architecture {
-    int var_p = 0;
-    std::map<ident, Memory> procedures_memory;
+    std::unordered_map<ident, ptr(Procedure)> procedures;
 
-    void assert_var(ident var_id, ident proc_id){
-        procedures_memory[proc_id].variables[var_id] = var_p;
-        logme_archt("Add var " + var_id + " ----> " + proc_id);
-        var_p++;
+    void add_procedure(ptr(Procedure) proc_id) {
+        procedures[proc_id->name] = proc_id;
     }
-    void assert_var_T(ident var_id, int size, ident proc_id){
-        procedures_memory[proc_id].variables_tab[var_id] = std::pair<int,int>(var_p, size);
-        var_p += size;
-    }
-    void assert_arg(ident arg_id, ident proc_id) {
-        procedures_memory[proc_id].args[arg_id] = var_p;
-        logme_archt("Add arg " + arg_id + " ----> " + proc_id);
-        var_p++;
-    }
-    void assert_arg_T(ident arg_id, ident proc_id) {
-        procedures_memory[proc_id].args_tab[arg_id] = var_p;
-        var_p++;
-    }
-    void assert_ret_reg(ident proc_id) {
-        procedures_memory[proc_id].ret_reg = var_p;
-    }
-    int get_var_addr(ident var_id, ident proc_id) {
-        return procedures_memory[proc_id].variables[var_id];
-    }
+
+    // void assert_var(ident var_id, ident proc_id){
+    //     procedure[proc_id].variables[var_id] = var_p;
+    //     logme_archt("Add var " + var_id + " ----> " + proc_id);
+    //     var_p++;
+    // }
+    // void assert_var_T(ident var_id, int size, ident proc_id){
+    //     procedure[proc_id].variables_tab[var_id] = std::pair<int,int>(var_p, size);
+    //     var_p += size;
+    // }
+    // void assert_arg(ident arg_id, ident proc_id) {
+    //     procedure[proc_id].args[arg_id] = var_p;
+    //     logme_archt("Add arg " + arg_id + " ----> " + proc_id);
+    //     var_p++;
+    // }
+    // void assert_arg_T(ident arg_id, ident proc_id) {
+    //     procedure[proc_id].args_tab[arg_id] = var_p;
+    //     var_p++;
+    // }
+    // void assert_ret_reg(ident proc_id) {
+    //     procedure[proc_id].ret_reg = var_p;
+    // }
+    // int get_var_addr(ident var_id, ident proc_id) {
+    //     return procedure[proc_id].variables[var_id];
+    // }
 };
 
 enum Register {A, B, C, D, E, F, G, H, NONE};

@@ -48,6 +48,8 @@ int main(int argc, char* argv[])
 
     yyin = pFILE_IN;
 
+    // MemoryManager::zero_var_p();
+
     yyparse();
 
 

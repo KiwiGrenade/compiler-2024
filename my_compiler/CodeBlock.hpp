@@ -121,15 +121,6 @@ struct EdgeProvider {
         EdgeProvider(int begin_id, int end_id) : _begin_id(begin_id), _end_id(end_id){};
 };
 
-struct Procedure {
-    ident name;
-    std::map<ident, Address> variables;
-    std::map<ident, Address> variables_tab;
-    std::map<ident, Address> arguments;
-    std::map<ident, Address> arguments_tab;
-    Address ret_address = -1;
-};
-
 struct CodeBlock {
         bool empty = false;
         bool last = false;
@@ -160,4 +151,5 @@ struct CodeBlock {
             next_false_id = -1;
         }
 };
+
 #endif

@@ -65,7 +65,7 @@ void AST::_asm_put_const(long long val, Register reg) {
 }
 
 // void AST::_asm_load_var(std::string id, Register reg, ptr(CodeBlock) cb) {
-//     int address = architecture.procedures_memory[cb->proc_id].variables[id];
+//     int address = architecture.procedures[cb->proc_id].variables[id];
 //     _asm_put_const(address, reg);
 // }
 
@@ -80,12 +80,12 @@ void AST::_asm_load(Value val, Register reg, ptr(CodeBlock) cb) {
     switch(val.identifier->type) {
         case PID:
             // get var addres
-            address = architecture.procedures_memory[cb->proc_id].variables[val.identifier->pid];
+            address = architecture.procedures[cb->proc_id]->variables[val.identifier->pid]->address;
             _asm_put_const(address, reg);
             add_asm_instruction(new_ptr(AsmInstruction, "LOAD", reg));
             break;
         case TAB_NUM:
-            address = architecture.procedures_memory[cb->proc_id].variables_tab[val.identifier->pid].first;
+            address = architecture.procedures[cb->proc_id]->tables[val.identifier->pid]->address;
             cell_address = address + val.identifier->ref_num;
             _asm_put_const(cell_address, reg);
             break;
@@ -93,7 +93,7 @@ void AST::_asm_load(Value val, Register reg, ptr(CodeBlock) cb) {
             warning("TAB_PID _asm_load to be added!");
             // _asm_load_var(val.ref_name, reg, cb);
             // add_asm_instruction(new_ptr(AsmInstruction, "RST", reg));
-            // address = architecture.procedures_memory[cb->proc_id].variables_tab[val.name].first;
+            // address = architecture.procedures[cb->proc_id].variables_tab[val.name].first;
             // _asm_load_const(address, );
             // add_asm_instruction(new_ptr(AsmInstruction, "ADD", reg));
             // _asm_load_
@@ -110,12 +110,12 @@ void AST::_asm_store(Value val, ptr(CodeBlock) cb) {
     switch(val.identifier->type)
     {
         case PID:
-            val_addr = architecture.procedures_memory[cb->proc_id].variables[val.identifier->pid];
+            val_addr = architecture.procedures[cb->proc_id]->variables[val.identifier->pid]->address;
             _asm_put_const(val_addr, Register::B);
             add_asm_instruction(new_ptr(AsmInstruction, "STORE", Register::B));
             break;
         case TAB_NUM:
-            val_addr = architecture.procedures_memory[cb->proc_id].variables_tab[val.identifier->pid].first;
+            val_addr = architecture.procedures[cb->proc_id]->tables[val.identifier->pid]->address;
             val_addr += val.identifier->ref_num;
             _asm_put_const(val_addr, Register::B);
             add_asm_instruction(new_ptr(AsmInstruction, "STORE", Register::B));
@@ -242,7 +242,7 @@ void AST::translate_assignment(Instruction ins, ptr(CodeBlock) cb) {
 }
 
 void AST::translate_ins(Instruction ins, ptr(CodeBlock) cb){
-    logme_AST("Translating instruction " << ins.type_of_instruction << " in procedure: " << cb->proc_id);
+    logme_AST("Translating instruction " << ins.type_of_instruction << " in procedures: " << cb->proc_id);
     switch(ins.type_of_instruction) {
         case _COND:
             translate_condition(ins, cb);
@@ -296,7 +296,7 @@ void AST::translate_snippet(ptr(CodeBlock) cb){
     
     logme_AST("before if");
     if(cb->next_true == nullptr) {
-        logme_AST("End of procedure: " + cb->proc_id) 
+        logme_AST("End of procedures: " + cb->proc_id) 
         if (cb->proc_id == "main") {
             _asm_halt();
         }
