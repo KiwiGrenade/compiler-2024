@@ -74,7 +74,7 @@ enum content_type {
     _ASS = 4,
     _CALL = 16,
     _ENDWHILE = 17
-} ;
+};
 
 enum operator_type {
     _MUL = 5,
@@ -89,29 +89,27 @@ enum operator_type {
     _LESS = 14,
     _MORE = 15,
     _NONE = 0
-} ;
+};
+
+struct Expression {
+    ptr(Value) left;
+    ptr(Value) right;
+    int op;
+    Expression(ptr(Value) _left, int _op, ptr(Value) _right): 
+    left(_left),
+    op(_op),
+    right(_right){};
+};
 
 struct Instruction {
     bool _while_cond = false;
-    int type_of_instruction;
-    int type_of_operator;
-    Value left;
-    Value right;
-    // Expression expr;
+    content_type type_of_instruction;
+    ptr(Expression) expr;
+    ptr(Value) lvalue;
     std::vector<Value> args;
     std::string proc_id;
 
     Instruction() = default;
-
-    static std::string get_ins_log_header(int ins_type)
-    {   
-        if(ins_type >= 5 && ins_type <= 9) 
-            return "EXPRESSION: ";
-        else if(ins_type >= 10 && ins_type <= 15)
-            return "CONDITION: ";
-        else 
-            return "COMMAND: ";
-    }
 };
 
 
@@ -120,6 +118,7 @@ struct EdgeProvider {
         int _end_id;
         EdgeProvider(int begin_id, int end_id) : _begin_id(begin_id), _end_id(end_id){};
 };
+
 
 struct CodeBlock {
         bool empty = false;
@@ -132,7 +131,6 @@ struct CodeBlock {
         int next_false_id; // = -1;
         std::string proc_id;
         std::vector<Instruction> instructions;
-        
         std::shared_ptr<CodeBlock> next_true;
         std::shared_ptr<CodeBlock> next_false;
         

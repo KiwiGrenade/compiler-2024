@@ -24,8 +24,6 @@ void yyerror(const char* string);
 int yylex();
 int yyparse();
 
-#include "map"
-
 extern size_t currLine;
 
 #endif  // DEFS_HPP

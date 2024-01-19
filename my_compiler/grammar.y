@@ -100,8 +100,8 @@ command:
     | KW_WHILE condition KW_DO commands KW_ENDWHILE                 {$$ = handleWhile($2, $4);}
     | KW_REPEAT commands KW_UNTIL condition SEMICOLON               {$$ = handleRepeat($2, $4);}
     | proc_call SEMICOLON                                           {$$ = handleProcCall($1);}
-    | KW_READ identifier SEMICOLON                                  {$$ = handleRead("", "READ", content_type::_READ, $2);}
-    | KW_WRITE value SEMICOLON                                      {$$ = handleWrite("", "WRITE", content_type::_WRITE, $2);}
+    | KW_READ identifier SEMICOLON                                  {$$ = handleRead($2);}
+    | KW_WRITE value SEMICOLON                                      {$$ = handleWrite($2);}
  
 proc_head:
     pidentifier LPRNT args_decl RPRNT                   {handleProcHead($1, $3);}

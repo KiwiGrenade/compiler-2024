@@ -179,31 +179,31 @@ private:
 
     static void _asm_put_const(long long val, Register reg);
 
-    static void _asm_load(Value val1, Register reg, ptr(CodeBlock) cb);
+    static void _asm_load(ptr(Value) val1, Register reg, ptr(CodeBlock) cb);
     // static void _asm_load_var(std::string id, Register reg, ptr(CodeBlock) cb);
 
     // static void _asm_store_const(Identifier id, long long val, Register reg);
-    static void _asm_store(Value val, Register reg, ptr(CodeBlock) cb);
+    static void _asm_store(ptr(Value) val, Register reg, ptr(CodeBlock) cb);
 
     // EXPRESSIONS
-    static void _asm_add(Value val1, Value val2, ptr(CodeBlock) cb);
-    static void _asm_sub(Value val1, Value val2, ptr(CodeBlock) cb);
-    static void _asm_mul(Value val1, Value val2, ptr(CodeBlock) cb);
-    static void _asm_div(Value val1, Value val2, ptr(CodeBlock) cb);
-    static void _asm_mod(Value val1, Value val2, ptr(CodeBlock) cb);
+    static void _asm_add(ptr(Value) val1, ptr(Value) val2, ptr(CodeBlock) cb);
+    static void _asm_sub(ptr(Value) val1, ptr(Value) val2, ptr(CodeBlock) cb);
+    static void _asm_mul(ptr(Value) val1, ptr(Value) val2, ptr(CodeBlock) cb);
+    static void _asm_div(ptr(Value) val1, ptr(Value) val2, ptr(CodeBlock) cb);
+    static void _asm_mod(ptr(Value) val1, ptr(Value) val2, ptr(CodeBlock) cb);
     // CONDITIONS
-    static void _asm_cmp_less(Value left, Value right, ptr(CodeBlock) cb);
-    static void _asm_cmp_eq(Value left, Value right, ptr(CodeBlock) cb);
-    static void _asm_cmp_less_or_equal(Value left, Value right, ptr(CodeBlock) cb);
-    static void _asm_cmp_neq(Value left, Value right, ptr(CodeBlock) cb);
+    static void _asm_cmp_less(ptr(Value) left, ptr(Value) right, ptr(CodeBlock) cb);
+    static void _asm_cmp_eq(ptr(Value) left, ptr(Value) right, ptr(CodeBlock) cb);
+    static void _asm_cmp_less_or_equal(ptr(Value) left, ptr(Value) right, ptr(CodeBlock) cb);
+    static void _asm_cmp_neq(ptr(Value) left, ptr(Value) right, ptr(CodeBlock) cb);
     // NONE OPEARND 
     static void _asm_halt();
     static void _asm_write();
     static void _asm_read();
     // JUMPS
     static void _asm_jump(ptr(CodeBlock) cb);
-    static void translate_read(Value val, ptr(CodeBlock) cb);
-    static void translate_write(Value val, ptr(CodeBlock) cb);
+    static void translate_read(ptr(Value) val, ptr(CodeBlock) cb);
+    static void translate_write(ptr(Value) val, ptr(CodeBlock) cb);
     static void translate_assignment(Instruction ins, ptr(CodeBlock) cd);
     static void translate_condition(Instruction ins, ptr(CodeBlock) cd);
     static void translate_ins(Instruction ins, ptr(CodeBlock) cb);

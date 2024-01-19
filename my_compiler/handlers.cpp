@@ -38,11 +38,11 @@ bool isIdUsed(ident id) {
 }
 
 
-void checkIfInitialized(Value val) {
-    if(val.identifier != nullptr) {
-        ident pid = val.identifier->pid;
-        ident ref_pid = val.identifier->ref_pid;
-        switch (val.identifier->type)
+void checkIfInitialized(ptr(Value) val) {
+    if(val->identifier != nullptr) {
+        ident pid = val->identifier->pid;
+        ident ref_pid = val->identifier->ref_pid;
+        switch (val->identifier->type)
         {
         case PID:
             if(curr_proc->variables.count(pid) && !curr_proc->variables[pid]->initialized) {
@@ -148,12 +148,12 @@ ident handleCommands(ident COMMANDS_ID, ident NEXT_COMMAND_ID) {
 
 ident handleAssignment(ident IDENTIFIER_ID, ident EXPRESSION_ID) {
     int expr_id = stoi(EXPRESSION_ID);
-    Value val = Value(IDENTIFIER_ID);
+    ptr(Value) val = new_ptr(Value, IDENTIFIER_ID);
 
-    switch (val.identifier->type)
+    switch (val->identifier->type)
     {
         case PID:
-            curr_proc->variables[val.identifier->pid]->initialized = true;
+            curr_proc->variables[val->identifier->pid]->initialized = true;
             break;
         // case TAB_PID:
         //     if(variable_ids[val.identifier->ref_pid] == 1) {
@@ -162,7 +162,7 @@ ident handleAssignment(ident IDENTIFIER_ID, ident EXPRESSION_ID) {
         // break;
     }
 
-    AST::get_vertex(providers[expr_id]._begin_id)->instructions[0].left = val;
+    AST::get_vertex(providers[expr_id]._begin_id)->instructions[0].lvalue = val;
     AST::get_vertex(providers[expr_id]._begin_id)->instructions[0].type_of_instruction = content_type::_ASS;
 
     curr_vertex_id--;
@@ -395,8 +395,6 @@ ident handleProcCall(ident PROC_CALL) {
             tmp_arg += PROC_CALL[i];
         }
     }
-
-
     
     AST::add_vertex(curr_vertex_id, instruction);
 
@@ -407,27 +405,20 @@ ident handleProcCall(ident PROC_CALL) {
  
 }
 
-ident handleCondition(ident VAL1, ident OP, int INS_TYPE, ident VAL2) {
+ident handleCondition(ident VAL1, ident OP, int OP_TYPE, ident VAL2) {
     set_head();
 
     Instruction instruction;
     instruction.type_of_instruction = content_type::_COND;
-    instruction.type_of_operator = INS_TYPE;
-    
-    // _WRITE -> no LHS
-    instruction.left = Value(VAL1);
-    // _NONE -> no RHS
-    instruction.right = Value(VAL2);
 
-    checkIfInitialized(instruction.left);
-    checkIfInitialized(instruction.right);
+    instruction.expr = new_ptr(Expression, new_ptr(Value, VAL1), OP_TYPE, new_ptr(Value, VAL2));
+
+    checkIfInitialized(instruction.expr->left);
+    checkIfInitialized(instruction.expr->right);
 
     AST::add_vertex(curr_vertex_id, instruction);
-    // add instructions to added vertex
 
-    std::string log_msg_head = Instruction::get_ins_log_header(instruction.type_of_instruction);
-
-    // logme_handle(log_msg_head + instruction.left.name + " " + OP + " "+ instruction.right.name);
+    logme_handle("CONDITION:" + VAL1 + " " + OP + " "+ VAL2);
     
     providers.push_back(EdgeProvider(curr_vertex_id, curr_vertex_id));
     
@@ -435,39 +426,64 @@ ident handleCondition(ident VAL1, ident OP, int INS_TYPE, ident VAL2) {
     return std::to_string(curr_vertex_id - 1);
 }
 
-ident handleExpression(ident VAL1, ident OP, int INS_TYPE, ident VAL2) {
+ident handleExpression(ident VAL1, ident OP, int OP_TYPE, ident VAL2) {
+    set_head();
+
+    ptr(Value) left = new_ptr(Value, VAL1);
+    ptr(Value) right;
+
+    Instruction instruction;
+
+    checkIfInitialized(left);
+    if(OP_TYPE != operator_type::_NONE) {
+        right = new_ptr(Value, VAL2);
+        checkIfInitialized(right);
+    }
+    
+    instruction.expr = new_ptr(Expression, left, OP_TYPE, right);
+
+    AST::add_vertex(curr_vertex_id, instruction);
+
+    logme_handle("Expression: " + VAL1 + " " + OP + " "+ VAL2);
+    
+    providers.push_back(EdgeProvider(curr_vertex_id, curr_vertex_id));
+    
+    curr_vertex_id++;
+    return std::to_string(curr_vertex_id - 1);
+}
+
+ident handleRead(ident VAL2) {
     set_head();
 
     Instruction instruction;
-    instruction.type_of_instruction = INS_TYPE;
-    instruction.type_of_operator = INS_TYPE;
+    instruction.type_of_instruction = content_type::_READ;
+    instruction.expr = new_ptr(Expression, nullptr, operator_type::_NONE, new_ptr(Value, VAL2));
 
-    // _WRITE -> no LHS
-    if((INS_TYPE != content_type::_WRITE) &&
-        (INS_TYPE != content_type::_READ)) {
-        instruction.left = Value(VAL1);
-        checkIfInitialized(instruction.left);
+    if(instruction.expr->right->identifier->type == PID) {
+        curr_proc->variables[instruction.expr->right->identifier->pid]->initialized = true;
     }
-    // _NONE -> no RHS
-    if((INS_TYPE != operator_type::_NONE)) {        
-        instruction.right = Value(VAL2);
-        if((INS_TYPE != content_type::_WRITE) &&
-            (INS_TYPE != content_type::_READ)) {
-            checkIfInitialized(instruction.right);
-        }
-    }
-
-    if(INS_TYPE == content_type::_READ) {
-        if(instruction.right.identifier->type == PID) {
-            curr_proc->variables[instruction.right.identifier->pid]->initialized = true;
-        }
-    }
+    
     AST::add_vertex(curr_vertex_id, instruction);
-    // add instructions to added vertex
 
-    std::string log_msg_head = Instruction::get_ins_log_header(instruction.type_of_instruction);
+    logme_handle("READ:" + VAL2);
 
-    logme_handle(log_msg_head + VAL1 + " " + OP + " "+ VAL2);
+    providers.push_back(EdgeProvider(curr_vertex_id, curr_vertex_id));
+    
+    curr_vertex_id++;
+    return std::to_string(curr_vertex_id - 1);
+}
+
+ident handleWrite(ident VAL2) {
+    set_head();
+
+    Instruction instruction;
+    instruction.type_of_instruction = content_type::_WRITE;
+    instruction.expr = new_ptr(Expression, nullptr, operator_type::_NONE, new_ptr(Value, VAL2));
+    checkIfInitialized(instruction.expr->right);
+
+    AST::add_vertex(curr_vertex_id, instruction);
+
+    logme_handle("WRITE:" + VAL2);
     
     providers.push_back(EdgeProvider(curr_vertex_id, curr_vertex_id));
     
