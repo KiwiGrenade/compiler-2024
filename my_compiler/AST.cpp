@@ -40,7 +40,7 @@ void AST::add_edge(int v_id, int u_id, bool flag) {
         } else {
             AST::get_vertex(v_id)->next_false_id = u_id;
         }
-        logme_AST("dodano krawedz: " << flag << "(" << v_id << ", " << u_id << ")");
+        // logme_AST("dodano krawedz: " << flag << "(" << v_id << ", " << u_id << ")");
     } catch (const char* msg) {
         std::cerr << msg << std::endl;
     }
@@ -48,8 +48,25 @@ void AST::add_edge(int v_id, int u_id, bool flag) {
 
 void add_asm_instruction(ptr(AsmInstruction) i) {
     AST::_asm_instructions.push_back(i);
-    // AST::instruction_pointer++;
+    AST::instruction_pointer++;
 }
+
+void AST::_asm_read() {
+    add_asm_instruction(new_ptr(AsmInstruction, "READ", Register::NONE));
+}
+
+void AST::_asm_write() {
+    add_asm_instruction(new_ptr(AsmInstruction, "WRITE", Register::NONE));
+}
+
+void AST::_asm_halt() {
+    add_asm_instruction(new_ptr(AsmInstruction, "HALT", Register::NONE));
+}
+
+void AST::_asm_jump(ptr(CodeBlock) cb) {
+    add_asm_instruction(new_ptr(AsmInstruction, "JUMP", cb));
+}
+
 
 // uses only reg
 void AST::_asm_put_const(long long val, Register reg) {
@@ -70,10 +87,6 @@ void AST::_asm_put_const(long long val, Register reg) {
     }
 }
 
-// void AST::_asm_load_var(std::string id, Register reg, ptr(CodeBlock) cb) {
-//     int address = architecture.procedures[cb->proc_id].variables[id];
-//     _asm_put_const(address, reg);
-// }
 
 // uses reg: A, h, REG -> register A is now loades with vlue of val
 void AST::_asm_load(ptr(Value) val, Register reg, ptr(CodeBlock) cb) {
@@ -154,30 +167,16 @@ void AST::_asm_store(ptr(Value) val, Register reg, ptr(CodeBlock) cb) {
             add_asm_instruction(new_ptr(AsmInstruction, "ADD", Register::H));
             // reg A = pid_addr + ref_pid_val
             add_asm_instruction(new_ptr(AsmInstruction, "STORE", reg));
-        break;      
+        break;
     }
+            // add_asm_instruction(new_ptr(AsmInstruction, "STORE", reg));
+
 }
 
 // void AST::_asm_store_const(Identifier ident, long long val, Register reg) {
 //     // _asm_load_const(val, reg);
 //     // add_asm_instruction()
 // }
-
-void AST::_asm_read() {
-    add_asm_instruction(new_ptr(AsmInstruction, "READ", Register::NONE));
-}
-
-void AST::_asm_write() {
-    add_asm_instruction(new_ptr(AsmInstruction, "WRITE", Register::NONE));
-}
-
-void AST::_asm_halt() {
-    add_asm_instruction(new_ptr(AsmInstruction, "HALT", Register::NONE));
-}
-
-void AST::_asm_jump(ptr(CodeBlock) cb) {
-    add_asm_instruction(new_ptr(AsmInstruction, "JUMP", instruction_pointer, cb->ip));
-}
 
 void AST::translate_read(ptr(Value) val, ptr(CodeBlock) cb) {
     _asm_read();
@@ -207,19 +206,22 @@ void AST::_asm_cmp_neq(ptr(Value) left, ptr(Value) right, ptr(CodeBlock) cb) {
 
 void AST::_asm_add(ptr(Value) val1, ptr(Value) val2, ptr(CodeBlock) cb) {
     _asm_load(val1, Register::B, cb);
+    add_asm_instruction(new_ptr(AsmInstruction, "PUT", Register::B));
     _asm_load(val2, Register::C, cb);
+    add_asm_instruction(new_ptr(AsmInstruction, "PUT", Register::B));
+
     // sum is in reg A
-    add_asm_instruction(new_ptr(AsmInstruction, "ADD", Register::B));
+    add_asm_instruction(new_ptr(AsmInstruction, "GET", Register::B));
     add_asm_instruction(new_ptr(AsmInstruction, "ADD", Register::C));
-    // add_asm_instruction(new_ptr(AsmInstruction, "PUT", Register::H));
-    // add_asm_instruction(new_ptr(AsmInstruction, "PUT", Register::H));
 }
 void AST::_asm_sub(ptr(Value) val1, ptr(Value) val2, ptr(CodeBlock) cb) {
     _asm_load(val1, Register::B, cb);
+    add_asm_instruction(new_ptr(AsmInstruction, "PUT", Register::B));
     _asm_load(val2, Register::C, cb);
+    add_asm_instruction(new_ptr(AsmInstruction, "PUT", Register::C));
+
     add_asm_instruction(new_ptr(AsmInstruction, "GET", Register::B));
     add_asm_instruction(new_ptr(AsmInstruction, "SUB", Register::C));
-    // add_asm_instruction(new_ptr(AsmInstruction, "PUT", Register::H));
 }
 void AST::_asm_mul(ptr(Value) val1, ptr(Value) val2, ptr(CodeBlock) cb) {
     warning("AST::_asm_mul() not implemented!");
@@ -287,7 +289,7 @@ void AST::translate_assignment(Instruction ins, ptr(CodeBlock) cb) {
 }
 
 void AST::translate_ins(Instruction ins, ptr(CodeBlock) cb){
-    logme_AST("Translating instruction " << ins.expr->op << " in procedures: " << cb->proc_id);
+    logme_AST("Translating instruction " << ins.type_of_instruction << " in procedures: " << cb->proc_id);
     switch(ins.type_of_instruction) {
         case _COND:
             translate_condition(ins, cb);
@@ -295,32 +297,32 @@ void AST::translate_ins(Instruction ins, ptr(CodeBlock) cb){
         case _READ:
             logme_AST("Translate READ");
             translate_read(ins.expr->right, cb);
-            if(cb->next_true != nullptr && !cb->next_true->empty && cb->next_true->instructions[0]._while_cond) {
-                _asm_jump(cb->next_true);
-                // add_asm_instruction(new_ptr(AsmInstruction, "JUMP", cb->next_true, instruction_pointer));
-            }
+            // if(cb->next_true != nullptr && !cb->next_true->empty && cb->next_true->instructions[0]._while_cond) {
+            //     _asm_jump(cb->next_true);
+            //     // add_asm_instruction(new_ptr(AsmInstruction, "JUMP", cb->next_true, instruction_pointer));
+            // }
             break;
         case _WRITE:
             logme_AST("Translate WRITE");
             translate_write(ins.expr->right, cb);
-            if(cb->next_true != nullptr && !cb->next_true->empty && cb->next_true->instructions[0]._while_cond) {
-                _asm_jump(cb->next_true);
-                // add_asm_instruction(new_ptr(AsmInstruction, "JUMP", cb->next_true, instruction_pointer));
-            }
+            // if(cb->next_true != nullptr && !cb->next_true->empty && cb->next_true->instructions[0]._while_cond) {
+            //     _asm_jump(cb->next_true);
+            //     // add_asm_instruction(new_ptr(AsmInstruction, "JUMP", cb->next_true, instruction_pointer));
+            // }
             break;
         case _ASS:
             translate_assignment(ins, cb);
-            if(cb->next_true != nullptr && !cb->next_true->empty && cb->next_true->instructions[0]._while_cond) {
-                _asm_jump(cb->next_true);
-            //    add_asm_instruction(new_ptr(AsmInstruction, "JUMP", cb->next_true, instruction_pointer));
-            }
+            // if(cb->next_true != nullptr && !cb->next_true->empty && cb->next_true->instructions[0]._while_cond) {
+            //     _asm_jump(cb->next_true);
+            // //    add_asm_instruction(new_ptr(AsmInstruction, "JUMP", cb->next_true, instruction_pointer));
+            // }
             break;
         case _CALL:
             // translate_call(ins, cb);
-            if(cb->next_true != nullptr && !cb->next_true->empty && cb->next_true->instructions[0]._while_cond) {
-                _asm_jump(cb->next_true);
-                // add_asm_instruction(new_ptr(AsmInstruction, "JUMP", cb->next_true, instruction_pointer));
-            }
+            // if(cb->next_true != nullptr && !cb->next_true->empty && cb->next_true->instructions[0]._while_cond) {
+            //     _asm_jump(cb->next_true);
+            //     // add_asm_instruction(new_ptr(AsmInstruction, "JUMP", cb->next_true, instruction_pointer));
+            // }
             break;
         case _ENDWHILE:
             break;
@@ -339,7 +341,7 @@ void AST::translate_snippet(ptr(CodeBlock) cb){
     }
     cb->translated = true;
     
-    logme_AST("before if");
+    // logme_AST("before if");
     if(cb->next_true == nullptr) {
         logme_AST("End of procedures: " + cb->proc_id) 
         if (cb->proc_id == "main") {
@@ -351,12 +353,14 @@ void AST::translate_snippet(ptr(CodeBlock) cb){
     }
     else {
         if (cb->empty) {
-            cb->translated = false;
+            // cb->translated = false;
             // _asm_jump(cb->next_true);
             // add_asm_instruction(new_ptr(AsmInstruction, "JUMP", cb->next_true, instruction_pointer));
             // logme_AST("My next is: " << std::to_string(cb->next_true->instructions[0].type_of_instruction));
         }
-        logme_AST("after if")
+        // cb->translated = false;
+        _asm_jump(cb->next_true);
+        // logme_AST("after if")
         translate_snippet(cb->next_true);
         translate_snippet(cb->next_false);
     }
@@ -370,8 +374,7 @@ void AST::translate_main() {
         if(it.second == "main") {
             auto head = get_vertex(it.first);
             logme_AST("Main head number: " << it.first);
-            // _asm_jump(head);
-            // add_asm_instruction(new_ptr(AsmInstruction, "JUMP", head, instruction_pointer));
+            _asm_jump(head);
         }
     }
     for(auto it : head_ids) {
@@ -385,7 +388,7 @@ void AST::translate_main() {
 }
 
 void AST::link_vertices() {
-    logme_AST("Linking vertices: START");
+    logme_AST("############## Linking vertices: START ##############");
     for(auto ver : vertices) {
         logme_AST("Linking vertice: " << ver->id);
         logme_AST("next_true_id: " << ver->next_true_id);
@@ -396,7 +399,7 @@ void AST::link_vertices() {
             ver->last = 1;
         }
     }
-    logme_AST("Linking vertices: END");
+    logme_AST("############## Linking vertices: END ################");
 }
 
 void AST::preorder_traversal_proc_id(ptr(CodeBlock) cb, std::string proc_id) {
@@ -412,6 +415,14 @@ void AST::spread_proc_name() {
     for (auto head : head_map) {
         ptr(CodeBlock) ver = get_vertex(head.first);
         preorder_traversal_proc_id(ver, head.second);
+    }
+}
+
+void AST::resolve_jumps() {
+    for(auto ins : _asm_instructions) {
+        if(ins->code == "JUMP") {
+            ins->jump_address = ins->cb->ip;
+        }
     }
 }
 

@@ -48,14 +48,13 @@ int main(int argc, char* argv[])
 
     yyin = pFILE_IN;
 
-    // MemoryManager::zero_var_p();
-
     yyparse();
 
 
     AST::link_vertices();
     AST::spread_proc_name();
     AST::translate_main();
+    AST::resolve_jumps();
     AST::save_code(output_file);
 
     return 0;

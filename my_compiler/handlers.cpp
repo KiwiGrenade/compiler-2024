@@ -126,7 +126,6 @@ void handleMain1(){
 }
 
 ident handleCommands(ident COMMANDS_ID, ident NEXT_COMMAND_ID) {
-    logme_handle("# HANDLE COMMANDS #")
     int comms_id = std::stoi(COMMANDS_ID);
     int next_comm_id = std::stoi(NEXT_COMMAND_ID);
 
@@ -139,8 +138,6 @@ ident handleCommands(ident COMMANDS_ID, ident NEXT_COMMAND_ID) {
     AST::add_edge(comms_end_id, next_comm_begin_id, true);
 
     providers.push_back(EdgeProvider(comms_begin_id, next_comm_end_id));
-
-    logme_handle("# HANDLE COMMANDS END #")
 
     curr_vertex_id++;
     return std::to_string(curr_vertex_id - 1);          

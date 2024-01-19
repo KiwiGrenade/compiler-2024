@@ -139,7 +139,7 @@ inline std::string to_string(Register reg){
         return "g";
     case Register::H:
         return "h";
-    case Register::NONE:
+    default:
         return "";
     }
 }
@@ -165,11 +165,13 @@ struct AsmInstruction {
         cb(nullptr),
         _register(reg){};
     
-    AsmInstruction(std::string _code, int _jump_address, int ip) :
+    AsmInstruction(std::string _code, ptr(CodeBlock) _cb) :
         code(_code),
-        _register(Register::NONE), 
-        jump_address(_jump_address),
-        instr_ptr(ip){};
+        _register(Register::NONE),
+        cb(_cb)
+        // jump_address(_jump_address),
+        // instr_ptr(ip)
+        {};
 };
 
 class AST {
@@ -228,6 +230,7 @@ public:
     static void spread_proc_name();
     static void save_code(std::string file_name);
     static void translate_main();
+    static void resolve_jumps();
 };
 
 #endif
