@@ -53,17 +53,21 @@ void add_asm_instruction(ptr(AsmInstruction) i) {
 
 // uses only reg
 void AST::_asm_put_const(long long val, Register reg) {
+    logme_AST(val);
     add_asm_instruction(new_ptr(AsmInstruction, "RST", reg));
+    std::vector<bool> bits;
     while (val > 0) {
-        if (val % 2 == 1) {
+        bits.push_back(val % 2);
+        val/=2;
+    }
+    for(auto i = bits.rbegin(); i != bits.rend(); i++) {
+        if (*i) {
             add_asm_instruction(new_ptr(AsmInstruction, "SHL", reg));
             add_asm_instruction(new_ptr(AsmInstruction, "INC", reg));
         } else {
             add_asm_instruction(new_ptr(AsmInstruction, "SHL", reg));
         }
-        val /= 2;
     }
-    // add_asm_instruction(new_ptr(AsmInstruction, "PUT", reg));
 }
 
 // void AST::_asm_load_var(std::string id, Register reg, ptr(CodeBlock) cb) {
