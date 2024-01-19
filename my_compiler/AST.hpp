@@ -146,19 +146,10 @@ inline std::string to_string(Register reg){
 struct AsmInstruction {
     int instr_ptr;
     int jump_address = -1;
+    bool jump = false;
     std::string code;
     Register _register;
     std::shared_ptr<CodeBlock> cb;
-
-    AsmInstruction(std::string _code, int ip) : 
-        code(_code),
-        _register(Register::NONE), 
-        instr_ptr(ip){};
-    
-    AsmInstruction(std::string _code, ptr(CodeBlock) _cb, int ip) :
-        code(_code),
-        cb(_cb),
-        instr_ptr(ip){};
     
     AsmInstruction(std::string _code, Register reg) : 
         code(_code),
@@ -168,10 +159,8 @@ struct AsmInstruction {
     AsmInstruction(std::string _code, ptr(CodeBlock) _cb) :
         code(_code),
         _register(Register::NONE),
-        cb(_cb)
-        // jump_address(_jump_address),
-        // instr_ptr(ip)
-        {};
+        jump(true),
+        cb(_cb){};
 };
 
 class AST {
@@ -194,9 +183,9 @@ private:
     static void _asm_div(ptr(Value) val1, ptr(Value) val2, ptr(CodeBlock) cb);
     static void _asm_mod(ptr(Value) val1, ptr(Value) val2, ptr(CodeBlock) cb);
     // CONDITIONS
-    static void _asm_cmp_less(ptr(Value) left, ptr(Value) right, ptr(CodeBlock) cb);
+    static void _asm_cmp_more(ptr(Value) left, ptr(Value) right, ptr(CodeBlock) cb);
     static void _asm_cmp_eq(ptr(Value) left, ptr(Value) right, ptr(CodeBlock) cb);
-    static void _asm_cmp_less_or_equal(ptr(Value) left, ptr(Value) right, ptr(CodeBlock) cb);
+    static void _asm_cmp_more_or_equal(ptr(Value) left, ptr(Value) right, ptr(CodeBlock) cb);
     static void _asm_cmp_neq(ptr(Value) left, ptr(Value) right, ptr(CodeBlock) cb);
     // NONE OPEARND 
     static void _asm_halt();
@@ -204,6 +193,9 @@ private:
     static void _asm_read();
     // JUMPS
     static void _asm_jump(ptr(CodeBlock) cb);
+    static void _asm_jump_pos(ptr(CodeBlock) cb);
+    static void _asm_jump_zero(ptr(CodeBlock) cb);
+
     static void translate_read(ptr(Value) val, ptr(CodeBlock) cb);
     static void translate_write(ptr(Value) val, ptr(CodeBlock) cb);
     static void translate_assignment(Instruction ins, ptr(CodeBlock) cd);
@@ -211,6 +203,7 @@ private:
     static void translate_ins(Instruction ins, ptr(CodeBlock) cb);
     static void translate_snippet(ptr(CodeBlock) cb);
 
+    static void checkWhile(ptr(CodeBlock));
 public:
     // k in virtual machine 
     static int                                  instruction_pointer;
