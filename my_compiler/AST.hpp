@@ -161,6 +161,12 @@ struct AsmInstruction {
         _register(Register::NONE),
         jump(true),
         cb(_cb){};
+
+    AsmInstruction(std::string _code, ptr(CodeBlock), Address _jump_address) :
+        code(_code),
+        _register(Register::NONE),
+        jump(true),
+        jump_address(_jump_address){};
 };
 
 class AST {
@@ -193,8 +199,11 @@ private:
     static void _asm_read();
     // JUMPS
     static void _asm_jump(ptr(CodeBlock) cb);
+    static void _asm_jump(ptr(CodeBlock) cb, Address _jump_address);
     static void _asm_jump_pos(ptr(CodeBlock) cb);
+    static void _asm_jump_pos(ptr(CodeBlock) cb, Address _jump_address);
     static void _asm_jump_zero(ptr(CodeBlock) cb);
+    static void _asm_jump_zero(ptr(CodeBlock) cb, Address _jump_address);
 
     static void translate_read(ptr(Value) val, ptr(CodeBlock) cb);
     static void translate_write(ptr(Value) val, ptr(CodeBlock) cb);
