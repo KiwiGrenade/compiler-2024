@@ -69,10 +69,13 @@ public:
     };
 
     Procedure(ident _name) : name(_name){
-        Procedure();
+        variables = std::make_shared<std::unordered_map<ident, ptr(Variable)>>();
+        tables = std::make_shared<std::unordered_map<ident, ptr(Table)>>();
+        args = std::make_shared<std::map<ident, ptr(Argument)>>();
     };
 
     bool isVar(ident name) {
+
         return (*variables).count(name);
     }
 
