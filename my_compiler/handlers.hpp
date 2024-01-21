@@ -4,11 +4,9 @@
 #include "definitions.hpp"
 #include "types.hpp"
 
-void handleProcedures2(ident PROCEDURES_ID, ident PROC_HEAD, ident DECLARATIONS_ID, ident COMMANDS_ID);
-ident handleProcedures1(ident PROCEDURES_ID, ident PROC_HEAD, ident COMMANDS_ID);
+void handleProcedures();
 
-void handleMain2(ident DECLARATIONS_ID, ident COMMANDS_ID);
-void handleMain1();
+void handleMain();
 
 ident handleCommands(ident COMMANDS_ID, ident NEXT_COMMAND_ID);
 

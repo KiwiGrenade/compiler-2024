@@ -67,15 +67,15 @@ program_all:
 
     /* procedures -> 0 or more procedure */
 procedures:
-     procedures KW_PROCEDURE proc_head KW_IS declarations KW_IN commands KW_END     {handleProcedures2($1, $3, $5, $7);}
-    | procedures KW_PROCEDURE proc_head KW_IS KW_IN commands KW_END                 {handleProcedures1($1, $3, $6);}
+     procedures KW_PROCEDURE proc_head KW_IS declarations KW_IN commands KW_END     {handleProcedures();}
+    | procedures KW_PROCEDURE proc_head KW_IS KW_IN commands KW_END                 {handleProcedures();}
     | %empty                                                                        {}
 ;
 
     /* main - > (var declarations + commands) OR commands */
 main:
-    KW_PROGRAM KW_IS declarations KW_IN commands KW_END     {handleMain2($3, $5);}
-    | KW_PROGRAM KW_IS KW_IN commands KW_END                {handleMain1();}
+    KW_PROGRAM KW_IS declarations KW_IN commands KW_END     {handleMain();}
+    | KW_PROGRAM KW_IS KW_IN commands KW_END                {handleMain();}
 ;
 
     /* commands -> one or more command */
@@ -158,8 +158,8 @@ value:
 
 identifier: 
     /*identifier( -> variable or table)*/
-    pidentifier                                 {handleIdentifier1($1); $$ = $1;}
-    | pidentifier LBRCKT num RBRCKT             {handleIdentifier2($1); $$ = $1 + $2 + $3 + $4;}
-    | pidentifier LBRCKT pidentifier RBRCKT     {handleIdentifier3($1, $3); $$ = $1 + $2 + $3 + $4;}
+    pidentifier                                 {/*handleIdentifier1($1)*/; $$ = $1;}
+    | pidentifier LBRCKT num RBRCKT             {/*handleIdentifier2($1)*/; $$ = $1 + $2 + $3 + $4;}
+    | pidentifier LBRCKT pidentifier RBRCKT     {/*handleIdentifier3($1, $3)*/; $$ = $1 + $2 + $3 + $4;}
 ;
 %%

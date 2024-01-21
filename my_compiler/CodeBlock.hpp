@@ -3,8 +3,140 @@
 #include <vector>
 #include <string>
 #include <map>
+#include <unordered_map>
 #include <memory>
 #include "definitions.hpp"
+
+struct MemoryManager {
+    static Address var_p;
+    static Address get_address() {
+        var_p++;
+        return var_p-1;
+    }
+    // static void zero_var_p() {
+    //     var_p = 0;
+    // }
+};
+
+struct Pointer {
+    ident name;
+    Address address;
+    bool argument;
+    Pointer(ident _name) : name(_name), address(MemoryManager::get_address()) {};
+};
+
+struct Argument : public Pointer {
+    int position;
+    bool table;
+    Argument(ident _name, int _pos, bool _table) : Pointer(_name), position(_pos), table(_table){};
+};
+
+struct Variable : public Pointer {
+    bool initialized;
+    Variable(ident _name) : Pointer(_name),  initialized(false){};
+    void set_initialized() {
+        initialized = true;
+    }
+};
+
+struct Table: public Variable {
+    //TODO: change to array
+    std::vector<ptr(Variable)> cells;
+    
+    Table(ident _name, long long size): Variable(_name){
+        cells.reserve(size);
+        ident cell_name;
+        for(long long i = 0; i < size-1; i++) {
+            cell_name = _name + "_" + std::to_string(i);
+            cells.push_back(new_ptr(Variable, cell_name));
+        }
+        address = cells.at(0)->address;
+    }
+};
+
+class Procedure {
+    ident name;
+    std::shared_ptr<std::unordered_map<ident, ptr(Variable)>> variables;
+    std::shared_ptr<std::unordered_map<ident, ptr(Table)>> tables;
+    std::shared_ptr<std::map<ident, ptr(Argument)>> args;
+    int ret_reg = -1;
+
+public:
+    Procedure() {
+        variables = std::make_shared<std::unordered_map<ident, ptr(Variable)>>();
+        tables = std::make_shared<std::unordered_map<ident, ptr(Table)>>();
+        args = std::make_shared<std::map<ident, ptr(Argument)>>();
+    };
+
+    Procedure(ident _name) : name(_name){
+        Procedure();
+    };
+
+    bool isVar(ident name) {
+        return (*variables).count(name);
+    }
+
+    bool isArg(ident name) {
+        return (*args).count(name);
+    }
+    
+    bool isTab(ident name) {
+        return (*tables).count(name);
+    }
+
+    ident get_name() {
+        return name;
+    }
+
+    void set_name(ident _name) {
+        name = _name;
+    }
+
+
+    ptr(Variable) get_var(ident name) {
+        if(isVar(name)) {
+            return (*variables)[name];
+        }
+        return nullptr;
+    }
+
+    void add_var(ptr(Variable) _var) {
+        (*variables)[_var->name] = _var;
+    }
+
+    ptr(Variable) get_tab(ident name) {
+        if(isTab(name)) {
+            return (*tables)[name];
+        }
+        return nullptr;
+    }
+    
+    void add_tab(ptr(Table) _tab) {
+        (*tables)[_tab->name] = _tab;
+    }
+    
+    ptr(Argument) get_arg(ident name) {
+        if(isArg(name)) {
+            return (*args)[name];
+        }
+        return nullptr;
+    }
+    
+    void add_arg(ptr(Argument) _arg) {
+        (*args)[_arg->name] = _arg;
+    }
+    
+    ptr(Argument) get_arg_at_idx(int _idx) {
+        ptr(Argument) result = nullptr;
+        for(auto arg : *args) {
+            if(arg.second->position == _idx) {
+                result = arg.second;
+            }
+        }
+        return result;
+    }
+};
+
 
 enum identifier_type {
     PID,
@@ -106,7 +238,7 @@ struct Instruction {
     content_type type_of_instruction;
     ptr(Expression) expr;
     ptr(Value) lvalue;
-    std::vector<Value> args;
+    std::vector<ptr(Pointer)> args;
     std::string proc_id;
 
     Instruction() = default;

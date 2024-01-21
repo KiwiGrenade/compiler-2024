@@ -114,44 +114,77 @@ void AST::_asm_put_const(long long val, Register reg) {
 
 // uses reg: A, h, REG -> register A is now loades with vlue of val
 void AST::_asm_load(ptr(Value) val, Register reg, ptr(CodeBlock) cb) {
-    long long address;
-    long long n;
+    Address address;
+    ptr(Procedure) curr_proc = architecture.procedures[cb->proc_id];
     if(val->identifier == nullptr) {
         _asm_put_const(val->val, reg);
         add_asm_instruction(new_ptr(AsmInstruction, "GET", reg));
     }
     else {
-        // if(architecture.procedures[cb->proc_id]->variables.count(val->identifier.pid)) {
+        // if(curr_proc->variables.count(val->identifier.pid)) {
+        ident pid = val->identifier->pid;
         switch(val->identifier->type) {
             case PID:
+                logme_AST("Loading: " + pid);
+                // load arg
+                if(curr_proc->isArg(pid)) {
+                    Address arg_address = curr_proc->get_arg(pid)->address;
+                    _asm_put_const(arg_address, Register::A);
+                    add_asm_instruction(new_ptr(AsmInstruction, "LOAD", Register::A));
+                    add_asm_instruction(new_ptr(AsmInstruction, "LOAD", Register::A));
+                }
+                // load var
+                else {
+                    address = curr_proc->get_var(pid)->address;
+                    _asm_put_const(address, reg);
+                    add_asm_instruction(new_ptr(AsmInstruction, "LOAD", reg));
+                }
                 // get var addres
-                address = architecture.procedures[cb->proc_id]->variables[val->identifier->pid]->address;
-                _asm_put_const(address, reg);
-                add_asm_instruction(new_ptr(AsmInstruction, "LOAD", reg));
                 break;
             case TAB_NUM:
-                address = architecture.procedures[cb->proc_id]->tables[val->identifier->pid]->address;
-                address += val->identifier->ref_num;
-                // logme_AST("REFNUM: " + val->identifier->ref_num);
-                _asm_put_const(address, reg);
-                add_asm_instruction(new_ptr(AsmInstruction, "LOAD", reg));
+                if(curr_proc->isArg(pid)) {
+                    warning("Loading of arg[num] - not implemented!");
+                }
+                else {
+                    address = curr_proc->get_tab(pid)->address;
+                    address += val->identifier->ref_num;
+                    _asm_put_const(address, reg);
+                    add_asm_instruction(new_ptr(AsmInstruction, "LOAD", reg));
+                }
                 break;
-            case TAB_PID:
-                address = architecture.procedures[cb->proc_id]->variables[val->identifier->ref_pid]->address;
-                // logme_AST("ref_pid address: " + std::to_string(address));
-                _asm_put_const(address, reg);
-                add_asm_instruction(new_ptr(AsmInstruction, "LOAD", reg));
-                
-                // ptr(Value) under ref_pid is now in reg A
-                
-                // load address of pid into H
-                address = architecture.procedures[cb->proc_id]->tables[val->identifier->pid]->address;
-                // logme_AST("pid address: " + std::to_string(address));
-                _asm_put_const(address, Register::D);
-                add_asm_instruction(new_ptr(AsmInstruction, "ADD", Register::D));
-                // reg A = pid_addr + ref_pid_val                 
-                add_asm_instruction(new_ptr(AsmInstruction, "LOAD", Register::A));
-                // ptr(Value) under [pid_addr + ref_pid_val] is now in reg A
+            default:
+                ident ref_pid = val->identifier->ref_pid;
+                // pid is argument
+                if(curr_proc->isArg(pid)) {
+                    warning("Loading arg[] - not implemented!");
+                    if(curr_proc->isArg(ref_pid)) {
+                        // warning("Loading a an argument table not implemented!");
+                    }
+                    else {
+
+                    }
+                }
+                else {
+                    // ref_pid is argument
+                    if(curr_proc->isArg(ref_pid)) {
+                        warning("Loading var[tab] - not implemented!");
+                    }
+                    else {
+                        address = curr_proc->get_var(ref_pid)->address;
+                        _asm_put_const(address, reg);
+                        add_asm_instruction(new_ptr(AsmInstruction, "LOAD", reg));
+                        
+                        // ptr(Value) under ref_pid is now in reg A
+                        
+                        // load address of pid into H
+                        address = curr_proc->get_tab(pid)->address;
+                        _asm_put_const(address, Register::D);
+                        add_asm_instruction(new_ptr(AsmInstruction, "ADD", Register::D));
+                        // reg A = pid_addr + ref_pid_val                 
+                        add_asm_instruction(new_ptr(AsmInstruction, "LOAD", Register::A));
+                        // ptr(Value) under [pid_addr + ref_pid_val] is now in reg A
+                    }
+                }
                 break;
         }
     }
@@ -161,36 +194,73 @@ void AST::_asm_load(ptr(Value) val, Register reg, ptr(CodeBlock) cb) {
 void AST::_asm_store(ptr(Value) val, Register reg, ptr(CodeBlock) cb) {
     long long address;
     ptr(Procedure) curr_proc = architecture.procedures[cb->proc_id];
-    // if(curr_proc.)
-
+    // value is an argument
+    ident pid = val->identifier->pid;
     switch(val->identifier->type)
     {
         case PID:
-            address = curr_proc->variables[val->identifier->pid]->address;
-            _asm_put_const(address, reg);
-            add_asm_instruction(new_ptr(AsmInstruction, "STORE", reg));
+            logme_AST("Storing: " + pid);
+            // is argument
+            if(curr_proc->isArg(pid)) {
+                add_asm_instruction(new_ptr(AsmInstruction, "PUT", Register::D));
+                address = curr_proc->get_arg(pid)->address;
+                _asm_put_const(address, reg);
+                add_asm_instruction(new_ptr(AsmInstruction, "LOAD", reg));
+                add_asm_instruction(new_ptr(AsmInstruction, "PUT", reg));
+                add_asm_instruction(new_ptr(AsmInstruction, "GET", Register::D));
+                add_asm_instruction(new_ptr(AsmInstruction, "STORE", reg));
+
+                //A has now the address of variable
+            }
+            else {
+                address = curr_proc->get_var(pid)->address;
+                _asm_put_const(address, reg);
+                add_asm_instruction(new_ptr(AsmInstruction, "STORE", reg));
+            }
             break;
         case TAB_NUM:
-            address = curr_proc->tables[val->identifier->pid]->address;
-            address += val->identifier->ref_num;
-            _asm_put_const(address, reg);
-            add_asm_instruction(new_ptr(AsmInstruction, "STORE", reg));
+            if(curr_proc->isArg(pid)) {
+                warning("Storing of arg[num] - not implemented!");
+            }
+            else {
+                address = curr_proc->get_tab(pid)->address;
+                address += val->identifier->ref_num;
+                _asm_put_const(address, reg);
+                add_asm_instruction(new_ptr(AsmInstruction, "STORE", reg));
+            }
             break;
-        case TAB_PID:
-            // H = A
-            add_asm_instruction(new_ptr(AsmInstruction, "PUT", Register::D));
-            // load into A val of ref_pid
-            address = architecture.procedures[cb->proc_id]->variables[val->identifier->ref_pid]->address;
-            _asm_put_const(address, Register::A);
-            add_asm_instruction(new_ptr(AsmInstruction, "LOAD", Register::A));
+        default:
+            ident ref_pid = val->identifier->ref_pid;
+            if(curr_proc->isArg(pid)) {
+                warning("Storing arg[] - not implemented!");
+                if(curr_proc->isArg(ref_pid)) {
 
-            // load address of pid into H
-            address = architecture.procedures[cb->proc_id]->tables[val->identifier->pid]->address;
-            _asm_put_const(address, reg);
-            add_asm_instruction(new_ptr(AsmInstruction, "ADD", Register::D));
-            // reg A = pid_addr + ref_pid_val
-            add_asm_instruction(new_ptr(AsmInstruction, "STORE", reg));
-        break;
+                }
+                else {
+
+                }
+            }
+            else {
+                if(curr_proc->isArg(ref_pid)) {
+                    warning("Storing var[arg] - not implemented!");
+                }
+                else {
+                    // H = A
+                    add_asm_instruction(new_ptr(AsmInstruction, "PUT", Register::D));
+                    // load into A val of ref_pid
+                    address = curr_proc->get_var(ref_pid)->address;
+                    _asm_put_const(address, Register::A);
+                    add_asm_instruction(new_ptr(AsmInstruction, "LOAD", Register::A));
+
+                    // load address of pid into H
+                    address = curr_proc->get_tab(pid)->address;
+                    _asm_put_const(address, reg);
+                    add_asm_instruction(new_ptr(AsmInstruction, "ADD", Register::D));
+                    // reg A = pid_addr + ref_pid_val
+                    add_asm_instruction(new_ptr(AsmInstruction, "STORE", reg));
+                    }
+            }
+            break;
     }
 }
 
@@ -242,8 +312,9 @@ void AST::_asm_cmp_neq(ptr(Value) left, ptr(Value) right, ptr(CodeBlock) cb) {
 }
 
 
-// uses reg: A, B, C, H
+// uses reg: A, B, C, D
 void AST::_asm_add(ptr(Value) val1, ptr(Value) val2, ptr(CodeBlock) cb) {
+    logme_AST("Add: START")
     _asm_load(val1, Register::B, cb);
     add_asm_instruction(new_ptr(AsmInstruction, "PUT", Register::B));
     _asm_load(val2, Register::C, cb);
@@ -252,9 +323,10 @@ void AST::_asm_add(ptr(Value) val1, ptr(Value) val2, ptr(CodeBlock) cb) {
     // sum is in reg A
     add_asm_instruction(new_ptr(AsmInstruction, "GET", Register::B));
     add_asm_instruction(new_ptr(AsmInstruction, "ADD", Register::C));
+    logme_AST("Add: END")
 }
 
-//uses reg: A, B, C, H
+//uses reg: A, B, C, D
 void AST::_asm_sub(ptr(Value) val1, ptr(Value) val2, ptr(CodeBlock) cb) {
     _asm_load(val1, Register::B, cb);
     add_asm_instruction(new_ptr(AsmInstruction, "PUT", Register::B));
@@ -462,11 +534,11 @@ void AST::translate_condition(Instruction ins, ptr(CodeBlock) cb) {
     }
 }
 
-// uses register A, register B and register H
+// uses reg: A, B, D
 void AST::translate_assignment(Instruction ins, ptr(CodeBlock) cb) {
-    logme_AST("Translate assignment: ");
     ptr(Value) left = ins.expr->left;
     ptr(Value) right = ins.expr->right;
+    logme_AST("Translate assignment of " + ins.lvalue->identifier->pid);
         switch(ins.expr->op) {
         case _ADD:
             _asm_add(left, right, cb);
@@ -490,6 +562,39 @@ void AST::translate_assignment(Instruction ins, ptr(CodeBlock) cb) {
     _asm_store(ins.lvalue, Register::B, cb);
 }
 
+void AST::translate_call(Instruction ins, ptr(CodeBlock) cb) {
+    ptr(Procedure) curr_proc = architecture.procedures[cb->proc_id];
+    ptr(Procedure) proc_to_call = architecture.procedures[ins.proc_id];
+    logme_AST("Translate procedure call: " + curr_proc->get_name() + " ----> " + proc_to_call->get_name());
+    std::vector<ptr(Pointer)> params = cb->instructions[0].args;
+    
+    for(int i = 0; i < params.size(); i++) {
+        Address param_address = params[i]->address;
+        logme_AST("Address of param: " + params[i]->name + " is " + std::to_string(param_address));
+        Address arg_address = proc_to_call->get_arg_at_idx(i)->address;
+        // logme_AST("Address of arg: " + arg.second->name + " is " + std::to_string(arg.second->address));
+        logme_AST("Storing para_address in p_arg_address");
+        _asm_put_const(param_address, Register::A);
+        _asm_put_const(arg_address, Register::B);
+        add_asm_instruction(new_ptr(AsmInstruction, "STORE", Register::B));
+        // address = curr_proc->variables[val->identifier->pid]->address;
+        // _asm_put_const(address, reg);
+    }
+    add_asm_instruction(new_ptr(AsmInstruction, "INC", Register::A));
+    add_asm_instruction(new_ptr(AsmInstruction, "STRK", Register::H));
+
+    int id_of_proc_head;
+    for(auto proc_head : head_map) {
+        if(proc_head.second == proc_to_call->get_name()) {
+            id_of_proc_head = proc_head.first;
+        }
+    }
+
+    // jump to first code block of the procedure you are calling
+    _asm_jump_pos(get_vertex(id_of_proc_head));  
+}
+
+
 void AST::translate_ins(Instruction ins, ptr(CodeBlock) cb){
     logme_AST("Translating instruction " << ins.type_of_instruction << " in procedures: " << cb->proc_id);
     switch(ins.type_of_instruction) {
@@ -511,8 +616,8 @@ void AST::translate_ins(Instruction ins, ptr(CodeBlock) cb){
             checkWhile(cb);
             break;
         case _CALL:
-            // translate_call(ins, cb);
-            // checkWhile(cb);
+            translate_call(ins, cb);
+            checkWhile(cb);
             break;
         case _ENDWHILE:
             break;
@@ -533,13 +638,14 @@ void AST::translate_snippet(ptr(CodeBlock) cb){
     
     // logme_AST("before if");
     if(cb->next_true == nullptr) {
-        logme_AST("End of procedures: " + cb->proc_id) 
+        logme_AST("End of procedure: " + cb->proc_id) 
         if (cb->proc_id == "main") {
             _asm_halt();
         }
-        // else {
-        //     _asm_jump_i(cb);
-        // }
+        else {
+            add_asm_instruction(new_ptr(AsmInstruction, "RST", Register::A));
+            add_asm_instruction(new_ptr(AsmInstruction, "JUMPR", Register::H));
+        }
     }
     else {
         if (cb->empty) {

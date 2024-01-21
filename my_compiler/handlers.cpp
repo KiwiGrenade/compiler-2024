@@ -30,13 +30,12 @@ void set_head() {
 }
 
 bool isIdUsed(ident id) {
-    if(curr_proc->variables.count(id) || curr_proc->args.count(id) || curr_proc->tables.count(id)) {
+    if(curr_proc->isVar(id) || curr_proc->isArg(id) || curr_proc->isTab(id)) {
         error("Identifier " + id + " is already in use!", true);
         return true;
     }
     return false;
 }
-
 
 void checkIfInitialized(ptr(Value) val) {
     if(val->identifier != nullptr) {
@@ -45,80 +44,40 @@ void checkIfInitialized(ptr(Value) val) {
         switch (val->identifier->type)
         {
         case PID:
-            if(curr_proc->variables.count(pid) && !curr_proc->variables[pid]->initialized) {
+            if(curr_proc->isVar(pid) && curr_proc->get_var(pid)->initialized == false) {
                 error("Variable: " + pid + " not initialized!", true);
             }
             break;
         case TAB_PID:
-            if(curr_proc->tables.count(pid) && !curr_proc->variables[ref_pid]->initialized) {
+            if(curr_proc->isTab(pid) && curr_proc->isVar(ref_pid) && curr_proc->get_var(ref_pid)->initialized == false) {
                 error("Variable: " + ref_pid + " not initialized!", true);
             }
         }
     }
 }
 
-void handleProcedures2(ident PROCEDURES_ID, ident PROC_HEAD, ident DECLARATIONS_ID, ident COMMANDS_ID) {
+void handleProcedures() {
     head_sig = true;
-    logme_handle("to parse: " + PROC_HEAD);
 
     // AST::architecture.assert_ret_reg(proc_name);
     AST::architecture.add_procedure(curr_proc);
 
-    // procedure_ids[proc_name] = curr_proc;
-
     auto lt = AST::head_map.end();
     lt--;
     int last = lt->first;
-    AST::head_map[last] = curr_proc->name;
+    AST::head_map[last] = curr_proc->get_name();
 
-    //TODO: \/\/ necessary??
-    // AST::architecture.assert_var(proc_name, proc_name);
+    curr_proc = new_ptr(Procedure, "main");
 
-    curr_proc = new_ptr(Procedure);
-
-
-    logme_handle("PROCEDURE: definition of [" + curr_proc->name + "]");
-    // curr_proc = new_ptr(Procedure);
+    logme_handle("PROCEDURE: definition of [" + curr_proc->get_name() + "]");
 }
 
-ident handleProcedures1(ident PROCEDURES_ID, ident PROC_HEAD, ident COMMANDS_ID) {
-    head_sig = true;
-    logme_handle("to parse: " + PROC_HEAD);
-
-    // AST::architecture.assert_ret_reg(proc_name);
-    
-    // procedure_ids[proc_name] = false;
-    AST::architecture.add_procedure(curr_proc);
-    
-    auto lt = AST::head_map.end();
-    lt--;
-    int last = lt->first;
-    AST::head_map[last] = curr_proc->name;
-    
-    //TODO: \/\/ necessary??
-    // AST::architecture.assert_var(proc_name, proc_name);
-
-    curr_proc = new_ptr(Procedure);
-
-    logme_handle("PROCEDURE: definition of [" + curr_proc->name + "]");
-    return curr_proc->name;
-}
-
-void handleMain2(ident DECLARATIONS_ID, ident COMMANDS_ID){
-    
-    handleMain1();
-}
-
-void handleMain1(){
+void handleMain(){
     // lt -> iterator to past-the-end object
-    if(AST::head_map.empty()) {
-        error("head_map is empty!", true);
-    }
     auto lt = AST::head_map.end();
     lt--;
     int index = lt->first;
     AST::head_map[index] = "main";
-
 
     AST::architecture.add_procedure(curr_proc);
 
@@ -147,17 +106,20 @@ ident handleAssignment(ident IDENTIFIER_ID, ident EXPRESSION_ID) {
     int expr_id = stoi(EXPRESSION_ID);
     ptr(Value) val = new_ptr(Value, IDENTIFIER_ID);
 
-    switch (val->identifier->type)
-    {
-        case PID:
-            curr_proc->variables[val->identifier->pid]->initialized = true;
-            break;
-        // case TAB_PID:
-        //     if(variable_ids[val.identifier->ref_pid] == 1) {
-        //         error("Variable: " + val.identifier->ref_pid + " not initialized!", true);
-        //     }
-        // break;
-    }
+    // switch (val->identifier->type)
+    // {
+    //     case PID:
+    //         if(isVar(curr_proc->name, val->identifier->pid)) {
+    //             curr_proc->variables[val->identifier->pid]->initialized = true;
+    //         }
+    //         break;
+    //     // case TAB_PID:
+    //     //     if(variable_ids[val.identifier->ref_pid] == 1) {
+    //     //         error("Variable: " + val.identifier->ref_pid + " not initialized!", true);
+    //     //     }
+    //     // break;
+    // }
+
 
     AST::get_vertex(providers[expr_id]._begin_id)->instructions[0].lvalue = val;
     AST::get_vertex(providers[expr_id]._begin_id)->instructions[0].type_of_instruction = content_type::_ASS;
@@ -254,16 +216,16 @@ ident handleProcHead(ident PROC_NAME, ident ARGS_DECL){
     }
 
     curr_proc = new_ptr(Procedure);
-    curr_proc->name = PROC_NAME;
+    curr_proc->get_name() = PROC_NAME;
 
     ident arg_pid = "";
     bool is_table = false;
     int position = 0;
 
     for(auto c : ARGS_DECL) {
-        if(c == ',') {
+        if(c == ',' || c == ')') {
             isIdUsed(arg_pid);
-            curr_proc->args[arg_pid] = new_ptr(Argument, arg_pid, position, is_table);
+            curr_proc->add_arg(new_ptr(Argument, arg_pid, position, is_table));
             if(is_table) {
                 logme_handle("Declare arg_tab: " << arg_pid << " ---> " << PROC_NAME)
             }
@@ -281,14 +243,6 @@ ident handleProcHead(ident PROC_NAME, ident ARGS_DECL){
             arg_pid += c;
         }
     }
-    isIdUsed(arg_pid);
-    curr_proc->args[arg_pid] = new_ptr(Argument, arg_pid, position, is_table);
-    if(is_table) {
-        logme_handle("Declare arg_tab: " << arg_pid << " ---> " << PROC_NAME)
-    }
-    else {
-        logme_handle("Declare arg: " << arg_pid << " ---> " << PROC_NAME)
-    }
 
     return PROC_NAME;
 }
@@ -296,7 +250,7 @@ ident handleProcHead(ident PROC_NAME, ident ARGS_DECL){
 ident handleVDecl(ident PID) {
     isIdUsed(PID);
     logme_handle("Declare var: " + PID);
-    curr_proc->variables[PID] = new_ptr(Variable, PID);
+    curr_proc->add_var(new_ptr(Variable, PID));
     return PID;
 }
 
@@ -304,7 +258,7 @@ ident handleTDecl(ident PID, ident num) {
     isIdUsed(PID);
     long long val = std::stoll(num);
     logme_handle("Declare table: " + PID + "[" + num + "]");
-    curr_proc->tables[PID] = new_ptr(Table, PID, val);
+    curr_proc->add_tab(new_ptr(Table, PID, val));
     return PID;
 }
 
@@ -333,65 +287,69 @@ ident handleRepeat(ident COMMANDS_ID, ident CONDITION_ID) {
     return std::to_string(curr_vertex_id - 1);
 }
 
+ident extract_proc_name(ident PROC_CALL) {
+    return PROC_CALL.substr(0, PROC_CALL.find_first_of('('));
+}
+
+void checkProcName(ident name) {
+    if(name == curr_proc->get_name()) {
+        error("Inappropriate usage of procedure: " + name, true);
+    }
+    //TODO: CHANGE THIS
+    if (!AST::architecture.procedures.count(name)) {
+        error("Procedure [" + name + "] has not been declared", true);
+    }
+}
+
+// TODO: add checking for params
+std::vector<ptr(Pointer)> extract_proc_params(ident params) {
+    std::vector<ptr(Pointer)> args;
+    args.reserve(params.size()/2);
+    
+    logme_handle("Wywala tu?");
+    ident tmp_arg = "";
+    for (auto c : params) {
+        if(c == ',' || c == ')') {
+            if(curr_proc->isArg(tmp_arg)) {
+                args.push_back(curr_proc->get_arg(tmp_arg));
+            }
+            else if(curr_proc->isVar(tmp_arg)) {
+                args.push_back(curr_proc->get_var(tmp_arg));
+            }
+            else if(curr_proc->isTab(tmp_arg)) {
+                args.push_back(curr_proc->get_tab(tmp_arg));
+            }
+            else {
+                error("Can't find: " + tmp_arg, true);
+            }
+        }
+        else {
+            tmp_arg += c;
+        }
+    }
+
+    return args;
+    // error("Wrong number of arguments for procedure: " + proc_id, true);
+    // error("Wrong parameters of procedure: " + proc_id, true);
+}
+
 ident handleProcCall(ident PROC_CALL) {
     logme_handle("PROC_CALL: " << PROC_CALL);
     set_head();
+    
     ident proc_id;
     ident tmp_arg;
     Instruction instruction;
     instruction.type_of_instruction = content_type::_CALL;
 
-    //TODO: check if you can optimise this
-    //TODO: include variable_tab_ids into argument_ids
-
     int i = 0;
-    for(i = 0; i < PROC_CALL.size(); i++) {
-        if(PROC_CALL[i] == '(') {
-            if  (tmp_arg == curr_proc->name) {
-                error("Inappropriate usage of procedure: " + tmp_arg, true);
-            }
-            if (!AST::architecture.procedures.count(tmp_arg)) {
-                error("Procedure [" + tmp_arg + "] has not been declared", true);
-            }
-            proc_id += tmp_arg;
-        }
-        else {
-            tmp_arg += PROC_CALL[i];
-        }
-    }
-    
-    if(!AST::architecture.procedures.count(proc_id)) {
-        error("Undefined procedure: " + proc_id, true);
-    }
-
+    proc_id = extract_proc_name(PROC_CALL);
+    // checkProcName(proc_id);
     instruction.proc_id = proc_id;
 
-    int arg_idx = 0;
-    for(i; i < PROC_CALL.size(); i++) {
-        if ((PROC_CALL[i] == ',' || PROC_CALL[i] == ')')) {
-            if(AST::architecture.procedures[proc_id]->get_arg_at_idx(arg_idx) == nullptr)
-            {
-                error("Wrong number of arguments for procedure: " + proc_id, true);
-            }
-            // if(!AST::architecture.procedures[proc_id]->variables.count(tmp_arg) && 
-            //     !AST::architecture.procedures[proc_id]->args.count(tmp_arg)) {
-            //     error("Undeclared parameter: " + tmp_arg + " in procedure: " + proc_id, true);
-            // }
-            // if(AST::architecture.procedures[proc_id]->variables.count(tmp_arg) ||
-                // AST::architecture.procedures[proc_id]->args.count(tmp_arg)                )
-            if(AST::architecture.procedures[proc_id]->get_arg_at_idx(arg_idx)->table != arg_idx) {
-                error("Wrong parameters of procedure: " + proc_id, true);
-            }
-            // if(AST::architecture.procedures[proc_id])
-            // if("")
-            instruction.args.push_back(Value(tmp_arg));
-            arg_idx++;
-            tmp_arg = "";
-        }
-        else {
-            tmp_arg += PROC_CALL[i];
-        }
-    }
+    ident params = PROC_CALL.substr(proc_id.size()+1);
+    
+    instruction.args = extract_proc_params(params);
     
     AST::add_vertex(curr_vertex_id, instruction);
 
@@ -409,10 +367,12 @@ ident handleCondition(ident VAL1, ident OP, int OP_TYPE, ident VAL2) {
     instruction.type_of_instruction = content_type::_COND;
 
     instruction.expr = new_ptr(Expression, new_ptr(Value, VAL1), OP_TYPE, new_ptr(Value, VAL2));
-
-    checkIfInitialized(instruction.expr->left);
-    checkIfInitialized(instruction.expr->right);
-
+    // if(!isArg(instruction.expr->left)){
+        // checkIfInitialized(instruction.expr->left);
+    // }
+    // if(!isArg(instruction.expr->right)){
+        // checkIfInitialized(instruction.expr->right);
+    // }
     AST::add_vertex(curr_vertex_id, instruction);
 
     logme_handle("CONDITION:" + VAL1 + " " + OP + " "+ VAL2);
@@ -431,12 +391,16 @@ ident handleExpression(ident VAL1, ident OP, int OP_TYPE, ident VAL2) {
 
     Instruction instruction;
 
-    checkIfInitialized(left);
-    if(OP_TYPE != operator_type::_NONE) {
-        right = new_ptr(Value, VAL2);
-        checkIfInitialized(right);
-    }
-    
+    // if(!isArg(left)){
+        // checkIfInitialized(left);
+    // }
+        if(OP_TYPE != operator_type::_NONE) {
+            right = new_ptr(Value, VAL2);
+            // if(!isArg(right)){
+                // checkIfInitialized(right);
+            // }
+        }
+
     instruction.expr = new_ptr(Expression, left, OP_TYPE, right);
 
     AST::add_vertex(curr_vertex_id, instruction);
@@ -456,8 +420,8 @@ ident handleRead(ident VAL2) {
     instruction.type_of_instruction = content_type::_READ;
     instruction.expr = new_ptr(Expression, nullptr, operator_type::_NONE, new_ptr(Value, VAL2));
 
-    if(instruction.expr->right->identifier->type == PID) {
-        curr_proc->variables[instruction.expr->right->identifier->pid]->initialized = true;
+    if(instruction.expr->right->identifier->type == PID && curr_proc->isVar(VAL2)) {
+        curr_proc->get_var(VAL2)->initialized = true;
     }
     
     AST::add_vertex(curr_vertex_id, instruction);
@@ -476,8 +440,9 @@ ident handleWrite(ident VAL2) {
     Instruction instruction;
     instruction.type_of_instruction = content_type::_WRITE;
     instruction.expr = new_ptr(Expression, nullptr, operator_type::_NONE, new_ptr(Value, VAL2));
-    checkIfInitialized(instruction.expr->right);
-
+    // if(!isArg(instruction.expr->right)) {
+        // checkIfInitialized(instruction.expr->right);
+    // }
     AST::add_vertex(curr_vertex_id, instruction);
 
     logme_handle("WRITE:" + VAL2);
@@ -489,17 +454,17 @@ ident handleWrite(ident VAL2) {
 }
 
 void handleIdentifier1(ident PID) {
-    if(curr_proc->tables.count(PID) || (curr_proc->args.count(PID) && curr_proc->args[PID]->table)) {
+    if(curr_proc->isTab(PID) || (curr_proc->isArg(PID) && curr_proc->get_arg(PID)->table)) {
         error("Wrong use of table [" + PID + "]!", true);
     }
-    if((!curr_proc->variables.count(PID)) && (!curr_proc->args.count(PID))) {
+    if((curr_proc->isVar(PID) == false) && (curr_proc->isArg(PID) == false)) {
         error("Variable [" + PID + "] has not been declared!", true);
     }
 }
 
 void handleIdentifier2(ident TAB_PID) {
     // if((!variable_tab_))
-    if((!curr_proc->tables.count(TAB_PID)) && (!curr_proc->args.count(TAB_PID))) {
+    if((curr_proc->isTab(TAB_PID) == false) && (curr_proc->isArg(TAB_PID) == false)) {
         error("Table [" + TAB_PID + "] has not been declared!", true);
     }
 }

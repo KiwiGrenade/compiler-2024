@@ -16,107 +16,54 @@ typedef long long Address;
 
 // }
 
-struct MemoryManager {
-    static Address var_p;
-    static Address get_address() {
-        var_p++;
-        return var_p-1;
-    }
-    // static void zero_var_p() {
-    //     var_p = 0;
-    // }
-};
-
-struct Pointer {
-    ident name;
-    Address address;
-    Pointer(ident _name) : name(_name), address(MemoryManager::get_address()) {};
-};
-
-struct Argument : public Pointer {
-    int position;
-    bool table;
-    Argument(ident _name, int _pos, bool _table) : Pointer(_name), position(_pos), table(_table){};
-};
-
-struct Variable : public Pointer {
-    bool initialized;
-
-    Variable(ident _name) : Pointer(_name),  initialized(false){};
-    void set_initialized() {
-        initialized = true;
-    }
-};
-
-struct Table {
-    //TODO: change to array
-    ident name;
-    Address address;
-    std::vector<ptr(Variable)> cells;
-    
-    Table(ident _name, long long size) {
-        cells.reserve(size);
-        ident cell_name;
-        for(long long i = 0; i < size; i++) {
-            cell_name = _name + "_" + std::to_string(i);
-            cells.push_back(new_ptr(Variable, cell_name));
-        }
-        address = cells.at(0)->address;
-    }
-};
-
-struct Procedure {
-    ident name;
-    std::unordered_map<ident, ptr(Variable)> variables;
-    std::unordered_map<ident, ptr(Table)> tables;
-    std::map<ident, ptr(Argument)> args;
-    int ret_reg = -1;
-
-    Procedure() = default;
-
-    Procedure(ident _name) : name(_name){};
-    ptr(Argument) get_arg_at_idx(int _idx) {
-        ptr(Argument) result = nullptr;
-        for(auto arg : args) {
-            if(arg.second->position == _idx) {
-                result = arg.second;
-            }
-        }
-        return result;
-    }
-};
 
 struct Architecture {
     std::unordered_map<ident, ptr(Procedure)> procedures;
 
-    void add_procedure(ptr(Procedure) proc_id) {
-        procedures[proc_id->name] = proc_id;
-    }
+    // ptr(Variable) get_var(ident proc_id, ident name) {
+    //     if(!isVar(proc_id, name)) {
+    //         error("Could not find var: " + name + " in proc: " + proc_id, true);
+    //         return nullptr;
+    //     }
+    //     else {
+    //         return (*procedures[proc_id]->variables)[name];
+    //     }
+    // }
 
-    // void assert_var(ident var_id, ident proc_id){
-    //     procedure[proc_id].variables[var_id] = var_p;
-    //     logme_archt("Add var " + var_id + " ----> " + proc_id);
-    //     var_p++;
+    // ptr(Argument) get_arg(ident proc_id, ident name) {
+    //     if(!isArg(proc_id, name)) {
+    //         error("Could not find arg: " + name + " in proc: " + proc_id, true);
+    //         return nullptr;
+    //     }
+    //     else {
+    //         return (*procedures[proc_id]->args)[name];
+    //     }
     // }
-    // void assert_var_T(ident var_id, int size, ident proc_id){
-    //     procedure[proc_id].variables_tab[var_id] = std::pair<int,int>(var_p, size);
-    //     var_p += size;
+
+    // ptr(Table) get_tab(ident proc_id, ident name) {
+    //     if(!isTable(proc_id, name)) {
+    //         error("Could not find table: " + name + " in proc: " + proc_id, true);
+    //         return nullptr;
+    //     }
+    //     else {
+    //         return (*procedures[proc_id]->tables)[name];
+    //     }
     // }
-    // void assert_arg(ident arg_id, ident proc_id) {
-    //     procedure[proc_id].args[arg_id] = var_p;
-    //     logme_archt("Add arg " + arg_id + " ----> " + proc_id);
-    //     var_p++;
+
+    // bool isArg(ident proc_id, ident name) {
+    //     return (*procedures[proc_id]->args).count(name);
     // }
-    // void assert_arg_T(ident arg_id, ident proc_id) {
-    //     procedure[proc_id].args_tab[arg_id] = var_p;
-    //     var_p++;
+
+    // bool isVar(ident proc_id, ident name) {
+    //     return (*procedures[proc_id]->variables).count(name);
     // }
-    // void assert_ret_reg(ident proc_id) {
-    //     procedure[proc_id].ret_reg = var_p;
+
+    // bool isTable(ident proc_id, ident name) {
+    //     return (*procedures[proc_id]->tables).count(name);
     // }
-    // int get_var_addr(ident var_id, ident proc_id) {
-    //     return procedure[proc_id].variables[var_id];
-    // }
+    void add_procedure(ptr(Procedure) proc_id) {
+        procedures[proc_id->get_name()] = proc_id;
+    }
 };
 
 enum Register {A, B, C, D, E, F, G, H, NONE};
@@ -211,6 +158,7 @@ private:
     static void translate_condition(Instruction ins, ptr(CodeBlock) cd);
     static void translate_ins(Instruction ins, ptr(CodeBlock) cb);
     static void translate_snippet(ptr(CodeBlock) cb);
+    static void translate_call(Instruction ins, ptr(CodeBlock) cb);
 
     static void checkWhile(ptr(CodeBlock));
 public:
