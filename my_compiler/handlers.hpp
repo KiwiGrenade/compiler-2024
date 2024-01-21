@@ -21,8 +21,8 @@ ident handleProcCall(ident PROC_CALL_ID);
 ident handleRead(ident VAL2);
 ident handleWrite(ident VAL2);
 
-ident handleExpression(ident VAL_ID_1, ident OP, int OP_TYPE, ident VAL_ID_2);
-ident handleCondition(ident VAL_ID_1, ident OP, int OP_TYPE, ident VAL_ID_2);
+ident handleExpression(ident VAL_ID_1, ident OP, long long OP_TYPE, ident VAL_ID_2);
+ident handleCondition(ident VAL_ID_1, ident OP, long long OP_TYPE, ident VAL_ID_2);
 
 ident handleVDecl(ident PID);
 ident handleTDecl(ident PID, ident size);

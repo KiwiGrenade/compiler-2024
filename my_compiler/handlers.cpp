@@ -5,9 +5,9 @@
 bool                        head_sig = true;
 size_t                      curr_vertex_id = 0;
 
-std::map<int, std::string>  AST::head_map;
+std::map<long long, std::string>  AST::head_map;
 Architecture                AST::architecture;
-std::vector<int>            AST::head_ids;
+std::vector<long long>            AST::head_ids;
 std::vector<ptr(CodeBlock)>      AST::vertices;
 std::vector<EdgeProvider>   providers;
 Address MemoryManager::var_p = 0;
@@ -64,7 +64,7 @@ void handleProcedures() {
 
     auto lt = AST::head_map.end();
     lt--;
-    int last = lt->first;
+    long long last = lt->first;
     AST::head_map[last] = curr_proc->get_name();
 
     curr_proc = new_ptr(Procedure, "main");
@@ -76,7 +76,7 @@ void handleMain(){
     // lt -> iterator to past-the-end object
     auto lt = AST::head_map.end();
     lt--;
-    int index = lt->first;
+    long long index = lt->first;
     AST::head_map[index] = "main";
 
     AST::architecture.add_procedure(curr_proc);
@@ -85,14 +85,14 @@ void handleMain(){
 }
 
 ident handleCommands(ident COMMANDS_ID, ident NEXT_COMMAND_ID) {
-    int comms_id = std::stoi(COMMANDS_ID);
-    int next_comm_id = std::stoi(NEXT_COMMAND_ID);
+    long long comms_id = std::stoi(COMMANDS_ID);
+    long long next_comm_id = std::stoi(NEXT_COMMAND_ID);
 
-    int comms_begin_id = providers[comms_id]._begin_id;
-    int comms_end_id = providers[comms_id]._end_id;
+    long long comms_begin_id = providers[comms_id]._begin_id;
+    long long comms_end_id = providers[comms_id]._end_id;
     
-    int next_comm_begin_id = providers[next_comm_id]._begin_id;
-    int next_comm_end_id = providers[next_comm_id]._end_id;
+    long long next_comm_begin_id = providers[next_comm_id]._begin_id;
+    long long next_comm_end_id = providers[next_comm_id]._end_id;
     
     AST::add_edge(comms_end_id, next_comm_begin_id, true);
 
@@ -103,7 +103,7 @@ ident handleCommands(ident COMMANDS_ID, ident NEXT_COMMAND_ID) {
 }
 
 ident handleAssignment(ident IDENTIFIER_ID, ident EXPRESSION_ID) {
-    int expr_id = stoi(EXPRESSION_ID);
+    long long expr_id = stoi(EXPRESSION_ID);
     ptr(Value) val = new_ptr(Value, IDENTIFIER_ID);
 
     // switch (val->identifier->type)
@@ -132,21 +132,21 @@ ident handleAssignment(ident IDENTIFIER_ID, ident EXPRESSION_ID) {
 }
 
 ident handleIfElse(ident CONDITION_ID, ident IF_COMMANDS_ID, ident ELSE_COMMANDS_ID) {
-    int cond_id = stoi(CONDITION_ID);
-    int if_comms_id = stoi(IF_COMMANDS_ID);
-    int el_comms_id = stoi(ELSE_COMMANDS_ID);
+    long long cond_id = stoi(CONDITION_ID);
+    long long if_comms_id = stoi(IF_COMMANDS_ID);
+    long long el_comms_id = stoi(ELSE_COMMANDS_ID);
 
     logme_handle("HANDLE_IF_ELSE");
 
     AST::add_empty_vertex(curr_vertex_id);
 
-    int cond_begin_id = providers[cond_id]._begin_id;
+    long long cond_begin_id = providers[cond_id]._begin_id;
 
-    int if_comms_begin_id = providers[if_comms_id]._begin_id;
-    int if_comms_end_id = providers[if_comms_id]._end_id;
+    long long if_comms_begin_id = providers[if_comms_id]._begin_id;
+    long long if_comms_end_id = providers[if_comms_id]._end_id;
     
-    int el_comms_begin_id = providers[el_comms_id]._begin_id;
-    int el_comms_end_id = providers[el_comms_id]._end_id;
+    long long el_comms_begin_id = providers[el_comms_id]._begin_id;
+    long long el_comms_end_id = providers[el_comms_id]._end_id;
     
     AST::add_edge(cond_begin_id, if_comms_begin_id, true);
     AST::add_edge(cond_begin_id, el_comms_begin_id, false);
@@ -162,16 +162,16 @@ ident handleIfElse(ident CONDITION_ID, ident IF_COMMANDS_ID, ident ELSE_COMMANDS
 }
 
 ident handleIf(ident CONDITION_ID, ident COMMANDS_ID) {
-    int cond_id = stoi(CONDITION_ID);
-    int comms_id = stoi(COMMANDS_ID);
+    long long cond_id = stoi(CONDITION_ID);
+    long long comms_id = stoi(COMMANDS_ID);
     
     logme_handle("# HANDLE_IF");
     
     AST::add_empty_vertex(curr_vertex_id);
 
-    int cond_begin_id = providers[cond_id]._begin_id;
-    int comms_begin_id = providers[comms_id]._begin_id;
-    int comms_end_id = providers[comms_id]._end_id;
+    long long cond_begin_id = providers[cond_id]._begin_id;
+    long long comms_begin_id = providers[comms_id]._begin_id;
+    long long comms_end_id = providers[comms_id]._end_id;
     
     AST::add_edge(cond_begin_id, comms_begin_id, true);
     AST::add_edge(cond_begin_id, curr_vertex_id, false);
@@ -187,14 +187,14 @@ ident handleIf(ident CONDITION_ID, ident COMMANDS_ID) {
 
 ident handleWhile(ident CONDITION_ID, ident COMMANDS_ID) {
     logme_handle("################# WHILE #################");
-    int cond_id = stoi(CONDITION_ID);
-    int comms_id = stoi(COMMANDS_ID);
+    long long cond_id = stoi(CONDITION_ID);
+    long long comms_id = stoi(COMMANDS_ID);
     
     AST::add_empty_vertex(curr_vertex_id);
 
-    int cond_begin_id = providers[cond_id]._begin_id;
-    int comms_begin_id = providers[comms_id]._begin_id;
-    int comms_end_id = providers[comms_id]._end_id;
+    long long cond_begin_id = providers[cond_id]._begin_id;
+    long long comms_begin_id = providers[comms_id]._begin_id;
+    long long comms_end_id = providers[comms_id]._end_id;
 
     AST::add_edge(cond_begin_id, comms_begin_id, true);
     AST::add_edge(comms_end_id, cond_begin_id, true);
@@ -220,7 +220,7 @@ ident handleProcHead(ident PROC_NAME, ident ARGS_DECL){
 
     ident arg_pid = "";
     bool is_table = false;
-    int position = 0;
+    long long position = 0;
 
     ARGS_DECL+=',';
 
@@ -267,16 +267,16 @@ ident handleTDecl(ident PID, ident num) {
 ident handleRepeat(ident COMMANDS_ID, ident CONDITION_ID) {
     logme_handle("################# REPEAT #################");
     
-    int comms_id = stoi(COMMANDS_ID);
-    int cond_id = stoi(CONDITION_ID);
+    long long comms_id = stoi(COMMANDS_ID);
+    long long cond_id = stoi(CONDITION_ID);
     
     AST::add_empty_vertex(curr_vertex_id);
 
 
-    int comms_begin_id = providers[comms_id]._begin_id;
-    int comms_end_id = providers[comms_id]._end_id;
-    int cond_begin_id = providers[cond_id]._begin_id;
-    int cond_end_id = providers[cond_id]._end_id;
+    long long comms_begin_id = providers[comms_id]._begin_id;
+    long long comms_end_id = providers[comms_id]._end_id;
+    long long cond_begin_id = providers[cond_id]._begin_id;
+    long long cond_end_id = providers[cond_id]._end_id;
 
     AST::add_edge(comms_end_id, cond_begin_id, true);
     AST::add_edge(cond_end_id, comms_begin_id, false);
@@ -304,21 +304,24 @@ void checkProcName(ident name) {
 }
 
 // TODO: add checking for params
-std::vector<ptr(Pointer)> extract_proc_params(ident params) {
-    std::vector<ptr(Pointer)> args;
+std::vector<ptr(Value)> extract_proc_params(ident params) {
+    std::vector<ptr(Value)> args;
     args.reserve(params.size()/2);
     
     ident tmp_arg = "";
     for (auto c : params) {
         if(c == ',' || c == ')') {
             if(curr_proc->isArg(tmp_arg)) {
-                args.push_back(curr_proc->get_arg(tmp_arg));
+                args.push_back(new_ptr(Value, tmp_arg));
+                // args.push_back(curr_proc->get_arg(tmp_arg));
             }
             else if(curr_proc->isVar(tmp_arg)) {
-                args.push_back(curr_proc->get_var(tmp_arg));
+                args.push_back(new_ptr(Value, tmp_arg));
+                // args.push_back(curr_proc->get_var(tmp_arg));
             }
             else if(curr_proc->isTab(tmp_arg)) {
-                args.push_back(curr_proc->get_tab(tmp_arg));
+                args.push_back(new_ptr(Value, tmp_arg));
+                // args.push_back(curr_proc->get_tab(tmp_arg));
             }
             else {
                 error("Can't find: " + tmp_arg, true);
@@ -344,7 +347,7 @@ ident handleProcCall(ident PROC_CALL) {
     Instruction instruction;
     instruction.type_of_instruction = content_type::_CALL;
 
-    int i = 0;
+    long long i = 0;
     proc_id = extract_proc_name(PROC_CALL);
     // checkProcName(proc_id);
     instruction.proc_id = proc_id;
@@ -362,7 +365,7 @@ ident handleProcCall(ident PROC_CALL) {
  
 }
 
-ident handleCondition(ident VAL1, ident OP, int OP_TYPE, ident VAL2) {
+ident handleCondition(ident VAL1, ident OP, long long OP_TYPE, ident VAL2) {
     set_head();
 
     Instruction instruction;
@@ -385,7 +388,7 @@ ident handleCondition(ident VAL1, ident OP, int OP_TYPE, ident VAL2) {
     return std::to_string(curr_vertex_id - 1);
 }
 
-ident handleExpression(ident VAL1, ident OP, int OP_TYPE, ident VAL2) {
+ident handleExpression(ident VAL1, ident OP, long long OP_TYPE, ident VAL2) {
     set_head();
 
     ptr(Value) left = new_ptr(Value, VAL1);

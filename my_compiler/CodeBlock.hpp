@@ -248,7 +248,7 @@ struct Instruction {
     content_type type_of_instruction;
     ptr(Expression) expr;
     ptr(Value) lvalue;
-    std::vector<ptr(Pointer)> args;
+    std::vector<ptr(Value)> args;
     std::string proc_id;
 
     Instruction() = default;
