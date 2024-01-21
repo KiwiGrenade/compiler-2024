@@ -216,14 +216,16 @@ ident handleProcHead(ident PROC_NAME, ident ARGS_DECL){
     }
 
     curr_proc = new_ptr(Procedure);
-    curr_proc->get_name() = PROC_NAME;
+    curr_proc->set_name(PROC_NAME);
 
     ident arg_pid = "";
     bool is_table = false;
     int position = 0;
 
+    ARGS_DECL+=',';
+
     for(auto c : ARGS_DECL) {
-        if(c == ',' || c == ')') {
+        if(c == ',') {
             isIdUsed(arg_pid);
             curr_proc->add_arg(new_ptr(Argument, arg_pid, position, is_table));
             if(is_table) {
@@ -306,7 +308,6 @@ std::vector<ptr(Pointer)> extract_proc_params(ident params) {
     std::vector<ptr(Pointer)> args;
     args.reserve(params.size()/2);
     
-    logme_handle("Wywala tu?");
     ident tmp_arg = "";
     for (auto c : params) {
         if(c == ',' || c == ')') {
@@ -322,6 +323,7 @@ std::vector<ptr(Pointer)> extract_proc_params(ident params) {
             else {
                 error("Can't find: " + tmp_arg, true);
             }
+            tmp_arg = "";
         }
         else {
             tmp_arg += c;

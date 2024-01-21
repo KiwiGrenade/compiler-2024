@@ -116,18 +116,19 @@ void AST::_asm_put_const(long long val, Register reg) {
 void AST::_asm_load(ptr(Value) val, Register reg, ptr(CodeBlock) cb) {
     Address address;
     ptr(Procedure) curr_proc = architecture.procedures[cb->proc_id];
+
     if(val->identifier == nullptr) {
         _asm_put_const(val->val, reg);
         add_asm_instruction(new_ptr(AsmInstruction, "GET", reg));
     }
     else {
-        // if(curr_proc->variables.count(val->identifier.pid)) {
         ident pid = val->identifier->pid;
         switch(val->identifier->type) {
             case PID:
                 logme_AST("Loading: " + pid);
                 // load arg
                 if(curr_proc->isArg(pid)) {
+                    logme_AST("Loading: " + pid);
                     Address arg_address = curr_proc->get_arg(pid)->address;
                     _asm_put_const(arg_address, Register::A);
                     add_asm_instruction(new_ptr(AsmInstruction, "LOAD", Register::A));
@@ -135,10 +136,12 @@ void AST::_asm_load(ptr(Value) val, Register reg, ptr(CodeBlock) cb) {
                 }
                 // load var
                 else {
+                    logme_AST("Loading: " + pid);
                     address = curr_proc->get_var(pid)->address;
                     _asm_put_const(address, reg);
                     add_asm_instruction(new_ptr(AsmInstruction, "LOAD", reg));
                 }
+                logme_AST("Loading COMPLETED");
                 // get var addres
                 break;
             case TAB_NUM:
@@ -596,7 +599,7 @@ void AST::translate_call(Instruction ins, ptr(CodeBlock) cb) {
 
 
 void AST::translate_ins(Instruction ins, ptr(CodeBlock) cb){
-    logme_AST("Translating instruction " << ins.type_of_instruction << " in procedures: " << cb->proc_id);
+    logme_AST("Translating instruction " + std::to_string(ins.type_of_instruction) + " in procedure " + cb->proc_id);
     switch(ins.type_of_instruction) {
         case _COND:
             translate_condition(ins, cb);
