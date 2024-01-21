@@ -583,8 +583,6 @@ void AST::translate_call(Instruction ins, ptr(CodeBlock) cb) {
         // address = curr_proc->variables[val->identifier->pid]->address;
         // _asm_put_const(address, reg);
     }
-    add_asm_instruction(new_ptr(AsmInstruction, "INC", Register::A));
-    add_asm_instruction(new_ptr(AsmInstruction, "STRK", Register::H));
 
     int id_of_proc_head;
     for(auto proc_head : head_map) {
@@ -593,8 +591,14 @@ void AST::translate_call(Instruction ins, ptr(CodeBlock) cb) {
         }
     }
 
-    // jump to first code block of the procedure you are calling
+    _asm_put_const(proc_to_call->get_ret_address(), Register::B);
+    add_asm_instruction(new_ptr(AsmInstruction, "STRK", Register::C));
+    _asm_jump_zero(cb, instruction_pointer+3);
+    add_asm_instruction(new_ptr(AsmInstruction, "GET", Register::C));
+    add_asm_instruction(new_ptr(AsmInstruction, "STORE", Register::B));
     _asm_jump_pos(get_vertex(id_of_proc_head));  
+
+    // jump to first code block of the procedure you are calling
 }
 
 
@@ -646,8 +650,13 @@ void AST::translate_snippet(ptr(CodeBlock) cb){
             _asm_halt();
         }
         else {
+            ptr(Procedure) curr_proc = architecture.procedures[cb->proc_id];
+            _asm_put_const(curr_proc->get_ret_address(), Register::A);
+            add_asm_instruction(new_ptr(AsmInstruction, "LOAD", Register::A));
+            // add_asm_instruction(new_ptr(AsmInstruction, "LOAD", Register::A));            
+            add_asm_instruction(new_ptr(AsmInstruction, "PUT", Register::B));            
             add_asm_instruction(new_ptr(AsmInstruction, "RST", Register::A));
-            add_asm_instruction(new_ptr(AsmInstruction, "JUMPR", Register::H));
+            add_asm_instruction(new_ptr(AsmInstruction, "JUMPR", Register::B));
         }
     }
     else {

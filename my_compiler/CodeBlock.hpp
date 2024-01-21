@@ -59,7 +59,10 @@ class Procedure {
     std::shared_ptr<std::unordered_map<ident, ptr(Variable)>> variables;
     std::shared_ptr<std::unordered_map<ident, ptr(Table)>> tables;
     std::shared_ptr<std::map<ident, ptr(Argument)>> args;
-    int ret_reg = -1;
+    //TODO: Change variable name to more specific
+    Address ret_address = MemoryManager::get_address();
+
+
 
 public:
     Procedure() {
@@ -73,6 +76,10 @@ public:
         tables = std::make_shared<std::unordered_map<ident, ptr(Table)>>();
         args = std::make_shared<std::map<ident, ptr(Argument)>>();
     };
+
+    Address get_ret_address() {
+        return ret_address;
+    }
 
     bool isVar(ident name) {
 
