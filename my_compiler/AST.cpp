@@ -115,11 +115,11 @@ void AST::_asm_put_const(long long val, Register reg) {
 // uses reg: A, h, REG -> register A is now loades with vlue of val
 void AST::_asm_load(ptr(Value) val, Register reg, ptr(CodeBlock) cb) {
     Address address;
+
     ptr(Procedure) curr_proc = architecture.procedures[cb->proc_id];
 
     if(val->identifier == nullptr) {
-        _asm_put_const(val->val, reg);
-        add_asm_instruction(new_ptr(AsmInstruction, "GET", reg));
+        _asm_put_const(val->val, Register::A);
     }
     else {
         ident pid = val->identifier->pid;
@@ -145,6 +145,7 @@ void AST::_asm_load(ptr(Value) val, Register reg, ptr(CodeBlock) cb) {
                 // get var addres
                 break;
             case TAB_NUM:
+                logme_AST("Loading: TAB");
                 if(curr_proc->isArg(pid)) {
                     Address arg_address = curr_proc->get_arg(pid)->address;
                     _asm_put_const(arg_address, Register::A);
@@ -463,22 +464,21 @@ void AST::_asm_mul(ptr(Value) val1, ptr(Value) val2, ptr(CodeBlock) cb) {
     add_asm_instruction(new_ptr(AsmInstruction, "PUT", Register::B));
     _asm_load(val2, Register::C, cb);
     add_asm_instruction(new_ptr(AsmInstruction, "PUT", Register::C));
-    add_asm_instruction(new_ptr(AsmInstruction, "PUT", Register::E));
     add_asm_instruction(new_ptr(AsmInstruction, "RST", Register::D));
     add_asm_instruction(new_ptr(AsmInstruction, "GET", Register::C)); /*JUMP 3*/ 
     _asm_jump_zero(cb, instruction_pointer+14);
-    add_asm_instruction(new_ptr(AsmInstruction, "SHR", Register::E));
-    add_asm_instruction(new_ptr(AsmInstruction, "SHL", Register::E));
+    add_asm_instruction(new_ptr(AsmInstruction, "SHR", Register::A));
+    add_asm_instruction(new_ptr(AsmInstruction, "SHL", Register::A));
+    add_asm_instruction(new_ptr(AsmInstruction, "PUT", Register::E));
     add_asm_instruction(new_ptr(AsmInstruction, "GET", Register::C));
     add_asm_instruction(new_ptr(AsmInstruction, "SUB", Register::E));
     _asm_jump_zero(cb, instruction_pointer+4);
     add_asm_instruction(new_ptr(AsmInstruction, "GET", Register::D));
     add_asm_instruction(new_ptr(AsmInstruction, "ADD", Register::B));
     add_asm_instruction(new_ptr(AsmInstruction, "PUT", Register::D));
-    add_asm_instruction(new_ptr(AsmInstruction, "SHL", Register::B)); /*JUMP 2*/
     add_asm_instruction(new_ptr(AsmInstruction, "SHR", Register::C));
     add_asm_instruction(new_ptr(AsmInstruction, "GET", Register::C));
-    add_asm_instruction(new_ptr(AsmInstruction, "PUT", Register::E));
+    add_asm_instruction(new_ptr(AsmInstruction, "SHL", Register::B));
     _asm_jump(cb, instruction_pointer-14);
     add_asm_instruction(new_ptr(AsmInstruction, "GET", Register::D)); /*JUMP 1*/
 }
@@ -490,7 +490,9 @@ void AST::_asm_div(ptr(Value) val1, ptr(Value) val2, ptr(CodeBlock) cb) {
     _asm_load(val2, Register::C, cb);
     add_asm_instruction(new_ptr(AsmInstruction, "PUT", Register::C));
     add_asm_instruction(new_ptr(AsmInstruction, "RST", Register::D));
-    _asm_jump_zero(cb, instruction_pointer+21); //OK
+    _asm_jump_pos(cb, instruction_pointer+3); //OK
+    add_asm_instruction(new_ptr(AsmInstruction, "RST", Register::B));
+    _asm_jump_zero(cb, instruction_pointer+21);
     add_asm_instruction(new_ptr(AsmInstruction, "GET", Register::C));
     add_asm_instruction(new_ptr(AsmInstruction, "SUB", Register::B));
     _asm_jump_pos(cb, instruction_pointer+18);  //OK
@@ -509,7 +511,7 @@ void AST::_asm_div(ptr(Value) val1, ptr(Value) val2, ptr(CodeBlock) cb) {
     add_asm_instruction(new_ptr(AsmInstruction, "PUT", Register::D));
     add_asm_instruction(new_ptr(AsmInstruction, "SHL", Register::E));
     add_asm_instruction(new_ptr(AsmInstruction, "SHL", Register::F));
-    _asm_jump(cb, instruction_pointer-9);
+    _asm_jump(cb, instruction_pointer-11);
     _asm_jump(cb, instruction_pointer-19);
     add_asm_instruction(new_ptr(AsmInstruction, "GET", Register::D));
 
@@ -625,75 +627,25 @@ void AST::translate_call(Instruction ins, ptr(CodeBlock) cb) {
         Address arg_address = proc_to_call->get_arg_at_idx(i)->address;
         ident pid = curr_proc_params[i]->identifier->pid;
         logme_AST("[" + pid + "] ----> " + assign_argument);
-        // switch(curr_proc_params[i]->identifier->type) {
-            // case PID:
-                if(curr_proc->isArg(pid)) {
-                    Address cp_arg_address = curr_proc->get_arg(pid)->address;
-                    _asm_put_const(arg_address, Register::B);
-                    _asm_put_const(cp_arg_address, Register::A);
-                    add_asm_instruction(new_ptr(AsmInstruction, "LOAD", Register::A));
-                    add_asm_instruction(new_ptr(AsmInstruction, "STORE", Register::B));
-                }
-                else {
-                    Address cp_var_address;
-                    if(curr_proc->isTab(pid)) {
-                        cp_var_address = curr_proc->get_tab(pid)->address;
-                    }
-                    else {
-                        cp_var_address = curr_proc->get_var(pid)->address;
-                    } 
-                    _asm_put_const(arg_address, Register::B);
-                    _asm_put_const(cp_var_address, Register::A);
-                    add_asm_instruction(new_ptr(AsmInstruction, "STORE", Register::B));
-                }
-        //     break;
-        //     case TAB_NUM:
-        //         if(curr_proc->isArg(pid)) {
-        //             Address cp_var_address = curr_proc->get_arg(pid)->address;
-        //             cp_var_address += curr_proc_params[i]->identifier->ref_num;
-        //             _asm_put_const(arg_address, Register::B);
-        //             _asm_put_const(cp_var_address, Register::A);
-        //             add_asm_instruction(new_ptr(AsmInstruction, "STORE", Register::B));
-        //         }
-        //         else {
-        //             Address cp_var_address = curr_proc->get_tab(pid)->address;
-        //             cp_var_address += curr_proc_params[i]->identifier->ref_num;
-        //             _asm_put_const(arg_address, Register::B);
-        //             _asm_put_const(cp_var_address, Register::A);
-        //             add_asm_instruction(new_ptr(AsmInstruction, "STORE", Register::B));
-        //         }
-        //     break;
-        //     default:
-        //         ident ref_pid = curr_proc_params[i]->identifier->ref_pid;
-        //         if(curr_proc->isArg(pid)) {
-        //             if(curr_proc->isArg(ref_pid)) {
-        //                 Address cp_arg_address = curr_proc->get_arg(pid)->address;
-        //                 Address
-        //                 _asm_put_const(arg_address, Register::B);
-        //                 _asm_put_const(cp_arg_address, Register::A);
-        //                 add_asm_instruction(new_ptr(AsmInstruction, "LOAD", Register::A));
-        //                 add_asm_instruction(new_ptr(AsmInstruction, "STORE", Register::B));
-        //             }
-        //             else {
-
-        //             }
-        //         }
-        //         else {
-        //             if(curr_proc->isArg(ref_pid)) {
-
-        //             }
-        //             else {
-                        
-        //             }
-        //         }
-        //     break;
-        // }
-        // _asm_put_const(param_address, Register::A);
-        // if(params[i]->argument) {
-        //     add_asm_instruction(new_ptr(AsmInstruction, "STORE", Register::B));
-        // }
-        // address = curr_proc->variables[val->identifier->pid]->address;
-        // _asm_put_const(address, reg);
+        if(curr_proc->isArg(pid)) {
+            Address cp_arg_address = curr_proc->get_arg(pid)->address;
+            _asm_put_const(arg_address, Register::B);
+            _asm_put_const(cp_arg_address, Register::A);
+            add_asm_instruction(new_ptr(AsmInstruction, "LOAD", Register::A));
+            add_asm_instruction(new_ptr(AsmInstruction, "STORE", Register::B));
+        }
+        else {
+            Address cp_var_address;
+            if(curr_proc->isTab(pid)) {
+                cp_var_address = curr_proc->get_tab(pid)->address;
+            }
+            else {
+                cp_var_address = curr_proc->get_var(pid)->address;
+            } 
+            _asm_put_const(arg_address, Register::B);
+            _asm_put_const(cp_var_address, Register::A);
+            add_asm_instruction(new_ptr(AsmInstruction, "STORE", Register::B));
+        }
     }
 
     long long id_of_proc_head;
