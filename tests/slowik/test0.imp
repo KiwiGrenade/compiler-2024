@@ -1,13 +1,12 @@
-[ Wymnozenie liczby 340282367713220089251654026161790386200 
-  ze stalych 33-bitowych
-  ( (2^32+1) * (2^32+2) * (2^32+3) * (2^32+4) )
-  na 2 sposoby.
-]
+# Wymnozenie liczby 340282367713220089251654026161790386200 
+#  ze stalych 33-bitowych
+#  ( (2^32+1) * (2^32+2) * (2^32+3) * (2^32+4) )
+#  na 2 sposoby.
+#
 PROGRAM IS
-VAR
     a, b, c, d,
     n, m
-BEGIN
+IN
     a := 4294967297;
     b := 4294967298;
     c := 4294967299;
