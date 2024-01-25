@@ -46,7 +46,7 @@ struct Table: public Variable {
     Table(ident _name, long long size): Variable(_name){
         cells.reserve(size);
         ident cell_name;
-        for(long long i = 0; i < size-1; i++) {
+        for(long long i = 0; i < size; i++) {
             cell_name = _name + "_" + std::to_string(i);
             cells.push_back(new_ptr(Variable, cell_name));
         }
@@ -187,7 +187,7 @@ struct Identifier {
                 break;
             case TAB_NUM:
                 pid = _name.substr(0, lbrt_idx);
-                ref_num = std::stoi(_name.substr(lbrt_idx + 1, _name.size() - rbrt_idx));
+                ref_num = std::stoll(_name.substr(lbrt_idx + 1, _name.size() - rbrt_idx));
                 break;
         }
     }
@@ -201,7 +201,7 @@ struct Value {
     Value(std::string _name){
         bool is_tab = false;
         if(isdigit(_name[0])) {
-            val = std::stoi(_name);
+            val = std::stoll(_name);
         }
         else {
             identifier = new_ptr(Identifier, _name);

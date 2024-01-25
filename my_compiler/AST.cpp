@@ -288,8 +288,8 @@ void AST::_asm_store(ptr(Value) val, ptr(CodeBlock) cb) {
             else {
                 Address var_address = curr_proc->get_tab(pid)->address;
                 var_address += val->identifier->ref_num;
-                _asm_put_const(var_address, Register::A);
-                add_asm_instruction(new_ptr(AsmInstruction, "STORE", Register::A));
+                _asm_put_const(var_address, Register::B);
+                add_asm_instruction(new_ptr(AsmInstruction, "STORE", Register::B));
             }
             break;
         default:

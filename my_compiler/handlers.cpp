@@ -85,8 +85,8 @@ void handleMain(){
 }
 
 ident handleCommands(ident COMMANDS_ID, ident NEXT_COMMAND_ID) {
-    long long comms_id = std::stoi(COMMANDS_ID);
-    long long next_comm_id = std::stoi(NEXT_COMMAND_ID);
+    long long comms_id = std::stoll(COMMANDS_ID);
+    long long next_comm_id = std::stoll(NEXT_COMMAND_ID);
 
     long long comms_begin_id = providers[comms_id]._begin_id;
     long long comms_end_id = providers[comms_id]._end_id;
@@ -103,7 +103,7 @@ ident handleCommands(ident COMMANDS_ID, ident NEXT_COMMAND_ID) {
 }
 
 ident handleAssignment(ident IDENTIFIER_ID, ident EXPRESSION_ID) {
-    long long expr_id = stoi(EXPRESSION_ID);
+    long long expr_id = stoll(EXPRESSION_ID);
     ptr(Value) val = new_ptr(Value, IDENTIFIER_ID);
 
     // switch (val->identifier->type)
@@ -132,9 +132,9 @@ ident handleAssignment(ident IDENTIFIER_ID, ident EXPRESSION_ID) {
 }
 
 ident handleIfElse(ident CONDITION_ID, ident IF_COMMANDS_ID, ident ELSE_COMMANDS_ID) {
-    long long cond_id = stoi(CONDITION_ID);
-    long long if_comms_id = stoi(IF_COMMANDS_ID);
-    long long el_comms_id = stoi(ELSE_COMMANDS_ID);
+    long long cond_id = stoll(CONDITION_ID);
+    long long if_comms_id = stoll(IF_COMMANDS_ID);
+    long long el_comms_id = stoll(ELSE_COMMANDS_ID);
 
     logme_handle("HANDLE_IF_ELSE");
 
@@ -162,8 +162,8 @@ ident handleIfElse(ident CONDITION_ID, ident IF_COMMANDS_ID, ident ELSE_COMMANDS
 }
 
 ident handleIf(ident CONDITION_ID, ident COMMANDS_ID) {
-    long long cond_id = stoi(CONDITION_ID);
-    long long comms_id = stoi(COMMANDS_ID);
+    long long cond_id = stoll(CONDITION_ID);
+    long long comms_id = stoll(COMMANDS_ID);
     
     logme_handle("# HANDLE_IF");
     
@@ -187,8 +187,8 @@ ident handleIf(ident CONDITION_ID, ident COMMANDS_ID) {
 
 ident handleWhile(ident CONDITION_ID, ident COMMANDS_ID) {
     logme_handle("################# WHILE #################");
-    long long cond_id = stoi(CONDITION_ID);
-    long long comms_id = stoi(COMMANDS_ID);
+    long long cond_id = stoll(CONDITION_ID);
+    long long comms_id = stoll(COMMANDS_ID);
     
     AST::add_empty_vertex(curr_vertex_id);
 
@@ -267,8 +267,8 @@ ident handleTDecl(ident PID, ident num) {
 ident handleRepeat(ident COMMANDS_ID, ident CONDITION_ID) {
     logme_handle("################# REPEAT #################");
     
-    long long comms_id = stoi(COMMANDS_ID);
-    long long cond_id = stoi(CONDITION_ID);
+    long long comms_id = stoll(COMMANDS_ID);
+    long long cond_id = stoll(CONDITION_ID);
     
     AST::add_empty_vertex(curr_vertex_id);
 
