@@ -1,0 +1,12 @@
+PROGRAM IS
+	a, b
+IN
+	 a:=6;
+	 b:=0;
+	 WHILE
+	 a > b
+	 DO
+	 WRITE b;
+	 b:=b+1;
+	 ENDWHILE
+END

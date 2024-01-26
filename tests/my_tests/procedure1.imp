@@ -1,0 +1,24 @@
+PROCEDURE pb(a,b,c)IS IN
+	pa(a,b,c);
+	pa(a,b,c);
+END
+
+
+
+PROCEDURE pa(a,b,c) IS
+
+IN
+	a:=b+c;
+END
+
+
+PROGRAM IS
+	a,b,c
+IN
+	a:=0;
+	b:=1;
+	c:=2;
+	pb(a,b,c);
+	WRITE a;
+END
+

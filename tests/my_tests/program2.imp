@@ -1,0 +1,13 @@
+# Binarna postać liczby 
+PROGRAM IS 
+	a, b, c, d[2]
+IN
+	a:=300;
+	b:=1;
+	c:=b-a;
+	d[0]:=a-b;
+	#d[1]:=d[b]+b;
+	WRITE c;
+	WRITE d[0];
+	WRITE d[b];
+END
