@@ -40,3 +40,5 @@ Czasami otrzymany przez nas plik może nie chcieć się wykonać. Może to być 
 + **definitions.hpp** - deklaracje używane przez wiele plików oraz makra
 
 + **types.hpp** - łączona definicja CodeBlocku oraz AST 
+
++ **main.cpp** - definicja i deklaracja funkcji main, error, warning oraz kolejności wykonywania części programu
