@@ -61,14 +61,18 @@ newline         \n|\r|\n\r
             } else if (KW == "ENDIF") {
                 return KW_ENDIF;
             } else if (KW == "WHILE") {
+                    loop_depth++;
                 return KW_WHILE;
             } else if (KW == "DO") {
                 return KW_DO;
             } else if (KW == "ENDWHILE") {
+                    loop_depth--;
                 return KW_ENDWHILE;
             } else if (KW == "REPEAT") {
+                    loop_depth++;
                 return KW_REPEAT;
             } else if (KW == "UNTIL") {
+                    loop_depth--;
                 return KW_UNTIL;
             } else if (KW == "READ") {
                 return KW_READ;
@@ -77,10 +81,12 @@ newline         \n|\r|\n\r
             } else if (KW == "T") {
                 return KW_T;
             } else {
-                /* TODO: Add INVALID_KEYWORD handling */
+                error("Found invalid keyword:" + KW, true);
             }
         }
 
-.              {/* TODO: Add INVALID_CHARACTER handling */}
+.              {error("Found invalid character: " + std::string(yytext), true);}
 %%
 size_t currLine = 1;
+long long loop_depth = 0;
+

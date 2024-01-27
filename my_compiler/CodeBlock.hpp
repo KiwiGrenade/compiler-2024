@@ -28,11 +28,14 @@ struct Pointer {
 struct Argument : public Pointer {
     int position;
     bool table;
+    bool initialized;
+    bool used;
     Argument(ident _name, int _pos, bool _table) : Pointer(_name), position(_pos), table(_table){};
 };
 
 struct Variable : public Pointer {
     bool initialized;
+    bool used;
     Variable(ident _name) : Pointer(_name),  initialized(false){};
     void set_initialized() {
         initialized = true;
@@ -108,6 +111,22 @@ public:
             return (*variables)[name];
         }
         return nullptr;
+    }
+
+    void checkIfVarsSetAndUsed() {
+        for(auto var : *variables) {
+            if(var.second->used && !var.second->initialized) {
+                error("Var " + var.first + " used before set!", true);
+            }
+        }
+    }
+
+    void checkIfArgsSetAndUsed() {
+        for(auto arg : *args) {
+            if(!arg.second->table && arg.second->used && !arg.second->initialized) {
+                error("Var " + arg.first + " used before set!", true);
+            }
+        }
     }
 
     void add_var(ptr(Variable) _var) {
