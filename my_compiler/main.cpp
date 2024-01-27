@@ -2,7 +2,7 @@
 #include "definitions.hpp"
 
 
-bool is_verbose = false;
+bool verbose = false;
 bool is_success = true;
 bool is_parsing = true;
 
@@ -36,14 +36,40 @@ void yyerror(const char* yerror_msg) {
 
 int main(int argc, char* argv[])
 {
-    FILE *pFILE_IN  = fopen(argv[1], "r");
+    FILE *pFILE_IN;
 
-    std::string output_file = argv[2];
+    std::string output_file;
 
-    if(!pFILE_IN)
+
+    for(int i = 1; i< argc; ++i)
     {
-        std::cerr << "ERROR: file " << argv[1] << " not found!" << std::endl;
-        return 1;
+        if(argv[i][0] == '-')
+        {
+            if(argv[i][1] == 'v')
+            {
+                verbose = true;
+                logme("Verbose ON", "[M]");
+            }
+            // else if(argv[i][1] == 'O') // any other turns on (again?)
+            // {
+            //     optimization = true;
+            // }
+            // else if(argv[i][1] == 'h')
+            // {
+            //     print_help();
+            // }
+            else error("Unknown compiler parameter " + std::string(argv[i]), true);
+        }
+        else {
+            pFILE_IN  = fopen(argv[i], "r");
+            if(!pFILE_IN)
+            {
+                error("File " + std::string(argv[i]) + " not found!", true);
+                return 1;
+            }
+            output_file = argv[i+1];
+            break;
+        }
     }
 
     yyin = pFILE_IN;
