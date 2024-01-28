@@ -1,0 +1,25 @@
+PROGRAM IS
+    a,b,c
+IN
+    a:=1234567;
+    b:=0;
+    c:=a/b;
+    WRITE c;
+
+    b:=1;
+    c:=a/b;
+    WRITE c;
+    
+    c:=1234567/2;
+    WRITE c;
+    
+    c:=0/1234;
+    WRITE c;
+
+    c:=1/112312;
+    WRITE c;
+    
+    c:=1231/1231232;
+    WRITE c;
+
+END
