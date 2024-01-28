@@ -1,8 +1,0 @@
-PROGRAM IS
-	a,c[2]
-IN
-	c[0]:=1007;
-	c[1]:=2003;
-	a:=c[0]*c[1];
-	WRITE a;
-END

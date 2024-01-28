@@ -1,9 +1,0 @@
-# Binarna postać liczby 
-PROGRAM IS
-	n[2], a, b
-IN
-	READ n[a];
-	WRITE n[a];
-	READ n[b];
-	WRITE n[b];
-END

@@ -1,6 +1,0 @@
-PROGRAM IS
-	a
-IN
-	a:=0/2;
-	WRITE a;
-END
