@@ -164,15 +164,12 @@ void AST::_asm_load(ptr(Value) val, Register reg, ptr(CodeBlock) cb) {
                 ident ref_pid = val->identifier->ref_pid;
                 if(curr_proc->isArg(pid)) {
                     // pid: argument, ref_pid: argument
-                    logme_AST("DUPA");
                     if(curr_proc->isArg(ref_pid)) {
-                        logme_AST("DUPA");
                         Address ref_arg_address = curr_proc->get_arg(ref_pid)->address;
                         _asm_put_const(ref_arg_address, Register::A);
                         add_asm_instruction(new_ptr(AsmInstruction, "LOAD", Register::A));
                         add_asm_instruction(new_ptr(AsmInstruction, "LOAD", Register::A));
                         add_asm_instruction(new_ptr(AsmInstruction, "PUT", reg));    
-                        // add_asm_instruction(new_ptr(AsmInstruction, "ADD", Register::B))
                         
                         Address arg_address = curr_proc->get_arg(pid)->address;
                         _asm_put_const(arg_address, Register::A);
@@ -184,15 +181,12 @@ void AST::_asm_load(ptr(Value) val, Register reg, ptr(CodeBlock) cb) {
                     else {
                         logme_AST(ref_pid);
                         Address ref_arg_address = curr_proc->get_var(ref_pid)->address;
-                        logme_AST("NIEDUPA");
 
                         _asm_put_const(ref_arg_address, Register::A);
                         add_asm_instruction(new_ptr(AsmInstruction, "LOAD", Register::A));
                         add_asm_instruction(new_ptr(AsmInstruction, "PUT", reg));    
-                        // add_asm_instruction(new_ptr(AsmInstruction, "ADD", Register::B))
                         
                         Address arg_address = curr_proc->get_arg(pid)->address;
-                        logme_AST("NIEDUPA");
                         _asm_put_const(arg_address, Register::A);
                         add_asm_instruction(new_ptr(AsmInstruction, "LOAD", Register::A));
                         add_asm_instruction(new_ptr(AsmInstruction, "ADD", reg));
@@ -223,20 +217,6 @@ void AST::_asm_load(ptr(Value) val, Register reg, ptr(CodeBlock) cb) {
                         _asm_put_const(var_address, Register::A);
                         add_asm_instruction(new_ptr(AsmInstruction, "ADD", reg));
                         add_asm_instruction(new_ptr(AsmInstruction, "LOAD", Register::A));
-                    
-                        // address = curr_proc->get_var(ref_pid)->address;
-                        // _asm_put_const(address, reg);
-                        // add_asm_instruction(new_ptr(AsmInstruction, "LOAD", reg));
-                        
-                        // // ptr(Value) under ref_pid is now in reg A
-                        
-                        // // load address of pid into H
-                        // address = curr_proc->get_tab(pid)->address;
-                        // _asm_put_const(address, Register::D);
-                        // add_asm_instruction(new_ptr(AsmInstruction, "ADD", Register::D));
-                        // // reg A = pid_addr + ref_pid_val                 
-                        // add_asm_instruction(new_ptr(AsmInstruction, "LOAD", Register::A));
-                        // ptr(Value) under [pid_addr + ref_pid_val] is now in reg A
                     }
                 }
                 break;
@@ -369,20 +349,6 @@ void AST::_asm_store(ptr(Value) val, ptr(CodeBlock) cb) {
                     
                     add_asm_instruction(new_ptr(AsmInstruction, "GET", Register::C));
                     add_asm_instruction(new_ptr(AsmInstruction, "STORE", Register::B));
-
-                    // // H = A
-                    // add_asm_instruction(new_ptr(AsmInstruction, "PUT", Register::D));
-                    // // load into A val of ref_pid
-                    // address = curr_proc->get_var(ref_pid)->address;
-                    // _asm_put_const(address, Register::A);
-                    // add_asm_instruction(new_ptr(AsmInstruction, "LOAD", Register::A));
-
-                    // // load address of pid into H
-                    // address = curr_proc->get_tab(pid)->address;
-                    // _asm_put_const(address, reg);
-                    // add_asm_instruction(new_ptr(AsmInstruction, "ADD", Register::D));
-                    // // reg A = pid_addr + ref_pid_val
-                    // add_asm_instruction(new_ptr(AsmInstruction, "STORE", reg));
                     }
             }
             break;
@@ -391,7 +357,6 @@ void AST::_asm_store(ptr(Value) val, ptr(CodeBlock) cb) {
 
 void AST::translate_read(ptr(Value) val, ptr(CodeBlock) cb) {
     _asm_read();
-    // do not use register A here!
     _asm_store(val, cb);
 }
 
@@ -518,50 +483,36 @@ void AST::_asm_div(ptr(Value) val1, ptr(Value) val2, ptr(CodeBlock) cb) {
     _asm_jump(cb, instruction_pointer-11);
     _asm_jump(cb, instruction_pointer-19);
     add_asm_instruction(new_ptr(AsmInstruction, "GET", Register::D));
-
-    // // load the divisor and dividend
-    // _asm_load(val1, Register::B, cb);
-    // add_asm_instruction(new_ptr(AsmInstruction, "PUT", Register::B));
-    // _asm_load(val2, Register::C, cb);
-    // add_asm_instruction(new_ptr(AsmInstruction, "PUT", Register::C));
-    // add_asm_instruction(new_ptr(AsmInstruction, "PUT", Register::E));
-    // add_asm_instruction(new_ptr(AsmInstruction, "RST", Register::F));
-    // // reset the counter, partial dividend and quotient
-    // // add_asm_instruction(new_ptr(AsmInstruction, "RST", Register::D));
-    // // add_asm_instruction(new_ptr(AsmInstruction, "RST", Register::E));
-
-    // //SECOND JUMP
-    // // double the dividend
-    // add_asm_instruction(new_ptr(AsmInstruction, "SHL", Register::E)); // E := E*2
-    // add_asm_instruction(new_ptr(AsmInstruction, "GET", Register::B)); // A := B
-
-    // // B>=E ?
-    // // add_asm_instruction(new_ptr(AsmInstruction, "GET", Register::E));
-    // add_asm_instruction(new_ptr(AsmInstruction, "SUB", Register::E)); // A := A-E = B-E
-    // // _asm_jump_zero(/*FIRST JUMP*/);
-    // // add_asm_instruction(new_ptr(AsmInstruction, "INC", Register::D));
-    // _asm_jump_pos(/*SECOND JUMP*/); // YES!!!
-    // // FIRST JUMP
-    // add_asm_instruction(new_ptr(AsmInstruction, "GET", Register::B));
-    // add_asm_instruction(new_ptr(AsmInstruction, "INC", Register::A));
-    // add_asm_instruction(new_ptr(AsmInstruction, "SUB", Register::E));
-    // _asm_jump_pos(/*SECOND JUMP*/); // YES!!!
-    // // NO !!! -> E = E/2
-    // add_asm_instruction(new_ptr(AsmInstruction, "SHR", Register::E));   // E := E/2
-    // add_asm_instruction(new_ptr(AsmInstruction, "SHR", Register::E));   // E := E/2 = E/4
-    // add_asm_instruction(new_ptr(AsmInstruction, "GET", Register::F));   // A := F
-    // add_asm_instruction(new_ptr(AsmInstruction, "ADD", Register::E));   // A := A + E = F + E
-    // add_asm_instruction(new_ptr(AsmInstruction, "PUT", Register::F));   // F := F + E
-    // add_asm_instruction(new_ptr(AsmInstruction, "SHL", Register::E));   // E := E
-    // //after while
-    // add_asm_instruction(new_ptr(AsmInstruction, "GET", Register::B));
-    // add_asm_instruction(new_ptr(AsmInstruction, "SUB", Register::E));
-    // _asm_jump_pos(/*SECOND JUMP*/)
-    // add_asm_instruction(new_ptr(AsmInstruction, "GET", Register::F));   // A := F
-    // warning("AST::_asm_div() not implemented!");
 }
 void AST::_asm_mod(ptr(Value) val1, ptr(Value) val2, ptr(CodeBlock) cb) {
-    _asm_div(val1, val2, cb);
+    _asm_load(val1, Register::B, cb);
+    add_asm_instruction(new_ptr(AsmInstruction, "PUT", Register::B));
+    _asm_load(val2, Register::C, cb);
+    add_asm_instruction(new_ptr(AsmInstruction, "PUT", Register::C));
+    add_asm_instruction(new_ptr(AsmInstruction, "RST", Register::D));
+    _asm_jump_pos(cb, instruction_pointer+3); //OK
+    add_asm_instruction(new_ptr(AsmInstruction, "RST", Register::B));
+    _asm_jump_zero(cb, instruction_pointer+21);
+    add_asm_instruction(new_ptr(AsmInstruction, "GET", Register::C));
+    add_asm_instruction(new_ptr(AsmInstruction, "SUB", Register::B));
+    _asm_jump_pos(cb, instruction_pointer+18);  //OK
+    add_asm_instruction(new_ptr(AsmInstruction, "GET", Register::C));
+    add_asm_instruction(new_ptr(AsmInstruction, "PUT", Register::E));
+    add_asm_instruction(new_ptr(AsmInstruction, "RST", Register::F));
+    add_asm_instruction(new_ptr(AsmInstruction, "INC", Register::F));
+    add_asm_instruction(new_ptr(AsmInstruction, "GET", Register::E));
+    add_asm_instruction(new_ptr(AsmInstruction, "SUB", Register::B));
+    _asm_jump_pos(cb, instruction_pointer+10); //OK
+    add_asm_instruction(new_ptr(AsmInstruction, "GET", Register::B));
+    add_asm_instruction(new_ptr(AsmInstruction, "SUB", Register::E));
+    add_asm_instruction(new_ptr(AsmInstruction, "PUT", Register::B));
+    add_asm_instruction(new_ptr(AsmInstruction, "GET", Register::D));
+    add_asm_instruction(new_ptr(AsmInstruction, "ADD", Register::F));
+    add_asm_instruction(new_ptr(AsmInstruction, "PUT", Register::D));
+    add_asm_instruction(new_ptr(AsmInstruction, "SHL", Register::E));
+    add_asm_instruction(new_ptr(AsmInstruction, "SHL", Register::F));
+    _asm_jump(cb, instruction_pointer-11);
+    _asm_jump(cb, instruction_pointer-19);
     add_asm_instruction(new_ptr(AsmInstruction, "GET", Register::B));
 }
     
@@ -721,7 +672,6 @@ void AST::translate_snippet(ptr(CodeBlock) cb){
             ptr(Procedure) curr_proc = architecture.procedures[cb->proc_id];
             _asm_put_const(curr_proc->get_ret_address(), Register::A);
             add_asm_instruction(new_ptr(AsmInstruction, "LOAD", Register::A));
-            // add_asm_instruction(new_ptr(AsmInstruction, "LOAD", Register::A));            
             add_asm_instruction(new_ptr(AsmInstruction, "PUT", Register::B));            
             add_asm_instruction(new_ptr(AsmInstruction, "RST", Register::A));
             add_asm_instruction(new_ptr(AsmInstruction, "JUMPR", Register::B));

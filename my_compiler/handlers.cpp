@@ -77,16 +77,11 @@ void markInitialized(ptr(Value) val) {
                 curr_proc->get_arg(val->identifier->pid)->initialized = true;
             }
             break;
-        // case TAB_NUM:
-        //     if(variable_ids[val.identifier->ref_pid] == 1) {
-        //         error("Variable: " + val.identifier->ref_pid + " not initialized!", true);
-        //     }
-        // break;
     }
 }
 
 
-ident extract_proc_name(ident PROC_CALL) {
+ident extractProcName(ident PROC_CALL) {
     return PROC_CALL.substr(0, PROC_CALL.find_first_of('('));
 }
 
@@ -102,22 +97,19 @@ void checkProcName(ident name) {
 
 
 // TODO: add checking for params
-void extract_proc_params(std::shared_ptr<std::vector<ptr(Value)>> args, ident params) {
-    
+void extractProcParams(std::shared_ptr<std::vector<ptr(Value)>> args, ident params) {
     ident tmp_arg = "";
+
     for (auto c : params) {
         if(c == ',' || c == ')') {
             if(curr_proc->isArg(tmp_arg)) {
                 (*args).push_back(new_ptr(Value, tmp_arg));
-                // args.push_back(curr_proc->get_arg(tmp_arg));
             }
             else if(curr_proc->isVar(tmp_arg)) {
                 (*args).push_back(new_ptr(Value, tmp_arg));
-                // args.push_back(curr_proc->get_var(tmp_arg));
             }
             else if(curr_proc->isTab(tmp_arg)) {
                 (*args).push_back(new_ptr(Value, tmp_arg));
-                // args.push_back(curr_proc->get_tab(tmp_arg));
             }
             else {
                 error("Can't find: " + tmp_arg, true);
@@ -128,53 +120,46 @@ void extract_proc_params(std::shared_ptr<std::vector<ptr(Value)>> args, ident pa
             tmp_arg += c;
         }
     }
-    // return args;
 }
 
-void checkNumArgs(std::shared_ptr<std::vector<ptr(Value)>> args, ident proc_id) {
-    if((*args).size() != AST::architecture.procedures[proc_id]->get_arg_size()) {
+void checkNumParams(std::shared_ptr<std::vector<ptr(Value)>> params, ident proc_id) {
+    int n_params = (*params).size();
+    int n_args = AST::architecture.procedures[proc_id]->get_arg_size();
+
+    if(n_params != n_args) {
         error("Wrong number of parameters in procedure: " + proc_id, true);
     }
 }
 
-void checkSequence(std::shared_ptr<std::vector<ptr(Value)>> args, ident proc_id) {
-    for(long long i = 0; i < (*args).size(); i++) {
-        ptr(Argument) call_arg = AST::architecture.procedures[proc_id]->get_arg_at_idx(i);
-        ident param_pid = (*args)[i]->identifier->pid;
-
-        if(call_arg->table != curr_proc->isTab(param_pid)) {
-                error("Wrong parameters in procedure: " + proc_id, true);
+// checks if parameter types match 
+void checkParamsType(std::shared_ptr<std::vector<ptr(Value)>> params, ident proc_id) {
+    for(int i = 0; i < (*params).size(); i++) {
+        
+        bool is_proc_call_arg_tab = AST::architecture.procedures[proc_id]->get_arg_at_idx(i)->table;
+        bool is_param_pid_tab;
+        ident param_pid = (*params)[i]->identifier->pid;
+        
+        if(curr_proc->isArg(param_pid)) {
+            is_param_pid_tab = curr_proc->get_arg(param_pid)->table;
+        }
+        else {
+            is_param_pid_tab = curr_proc->isTab((*params)[i]->identifier->pid);
+        }
+        
+        if(is_proc_call_arg_tab != is_param_pid_tab) {
+            error("Wrong parameters in procedure: " + proc_id, true);
         }
     }
 }
-// void checkSequence(std::shared_ptr<std::vector<ptr(Value)>> args, ident proc_id) {
-//     for(long long i = 0; i < (*args).size(); i++) {
-//         ptr(Argument) call_arg = AST::architecture.procedures[proc_id]->get_arg_at_idx(i);
-//         ident param_pid = (*args)[i]->identifier->pid;
 
-//         if(call_arg->table) {
-//             if(curr_proc->isTab(param_pid) == false) {
-//                 error("Wrong parameters in procedure: " + proc_id, true);
-//             }
-//             else if(curr_proc->isArg(param_pid) && (curr_proc->get_arg(param_pid)->table == false)) {
-//                 error("Wrong parameters in procedure: " + proc_id, true);
-//             }
-//         }
-//         else {
-//             if(curr_proc->isTab(param_pid)) {
-//                 error("Wrong parameters in procedure: " + proc_id, true);
-//             }
-//             if(curr_proc->isArg(param_pid) && (curr_proc->get_arg(param_pid)->table == true)) {
-//                 error("Wrong parameters in procedure: " + proc_id, true);
-//             }
-//         }
-//     }
-// }
-
+// marks every parameter used in a procedure as initialized
 void markParamsInitialized(std::shared_ptr<std::vector<ptr(Value)>> args, ident proc_id) {
-    for(long long i = 0; i < (*args).size(); i++) {
+    for(int i = 0; i < (*args).size(); i++) {
+        
         ptr(Argument) call_arg = AST::architecture.procedures[proc_id]->get_arg_at_idx(i);
         ident param_pid = (*args)[i]->identifier->pid;
+
+        // if argument isn't initialized -> initialize it
         if(curr_proc->isArg(param_pid) && !curr_proc->get_arg(param_pid)->table && !curr_proc->get_arg(param_pid)->initialized) {
             curr_proc->get_arg(param_pid)->initialized = true;        
         }
@@ -194,7 +179,6 @@ void checkSetAndUsed() {
 void handleProcedures() {
     head_sig = true;
 
-    // AST::architecture.assert_ret_reg(proc_name);
     AST::architecture.add_procedure(curr_proc);
 
     auto lt = AST::head_map.end();
@@ -426,19 +410,16 @@ ident handleProcCall(ident PROC_CALL) {
     Instruction instruction;
     instruction.type_of_instruction = content_type::_CALL;
 
-    proc_id = extract_proc_name(PROC_CALL);
+    proc_id = extractProcName(PROC_CALL);
     checkProcName(proc_id);
-    instruction.proc_id = proc_id;
-
     ident params_id = PROC_CALL.substr(proc_id.size()+1);
-    
-    extract_proc_params(params, params_id);
 
-    checkNumArgs(params, proc_id);
-    checkSequence(params, proc_id);
-
+    extractProcParams(params, params_id);
+    checkNumParams(params, proc_id);
+    checkParamsType(params, proc_id);
     markParamsInitialized(params, proc_id);
 
+    instruction.proc_id = proc_id;
     instruction.args = (*params);
     
     AST::add_vertex(curr_vertex_id, instruction);
@@ -462,29 +443,6 @@ ident handleCondition(ident VAL1, ident OP, long long OP_TYPE, ident VAL2) {
     checkIfInitialized(instruction.expr->right);
 
     AST::add_vertex(curr_vertex_id, instruction);
-// args = (*params);
-    
-//     AST::add_vertex(curr_vertex_id, instruction);
-
-//     providers.push_back(EdgeProvider(curr_vertex_id, curr_vertex_id));
-
-//     curr_vertex_id++;
-//     return std::to_string(curr_vertex_id - 1);
- 
-// }
-
-// ident handleCondition(ident VAL1, ident OP, long long OP_TYPE, ident VAL2) {
-//     set_head();
-
-//     Instruction instruction;
-//     instruction.type_of_instruction = content_type::_COND;
-
-//     instruction.expr = new_ptr(Expression, new_ptr(Value, VAL1), OP_TYPE, new_ptr(Value, VAL2));
-
-//     checkIfInitialized(instruction.expr->left);
-//     checkIfInitialized(instruction.expr->right);
-
-//     AST::add_vertex(curr_vertex_id, instruction);
 
     logme_handle("CONDITION:" + VAL1 + " " + OP + " "+ VAL2);
     
@@ -570,7 +528,6 @@ void handleIdentifier1(ident PID) {
 }
 
 void handleIdentifier2(ident TAB_PID) {
-    // if((!variable_tab_))
     if((curr_proc->isTab(TAB_PID) == false) && (curr_proc->isArg(TAB_PID) == false)) {
         error("Table [" + TAB_PID + "] has not been declared!", true);
     }

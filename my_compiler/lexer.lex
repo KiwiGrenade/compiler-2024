@@ -3,10 +3,11 @@
     #include "types.hpp"
 }
 comment         "#".*|\\n
-whitespace      [[:blank:]]+ 
+whitespace      [[:blank:]]+|(\r)*
 num             [[:digit:]]+
 pidentifier     [_a-z]+
-newline         \n|\r|\n\r
+/* newline         \n|\r|\n\r */
+newline         \n
 
 %%
 

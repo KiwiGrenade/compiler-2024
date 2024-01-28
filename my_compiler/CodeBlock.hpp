@@ -13,9 +13,6 @@ struct MemoryManager {
         var_p++;
         return var_p-1;
     }
-    // static void zero_var_p() {
-    //     var_p = 0;
-    // }
 };
 
 struct Pointer {
