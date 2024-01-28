@@ -730,12 +730,12 @@ void AST::translate_snippet(ptr(CodeBlock) cb){
     else {
         if (cb->empty) {
             cb->translated = false;
-            // _asm_jump(cb->next_true);
+            _asm_jump(cb->next_true);
             // add_asm_instruction(new_ptr(AsmInstruction, "JUMP", cb->next_true, instruction_pointer));
             // logme_AST("My next is: " << std::to_string(cb->next_true->instructions[0].type_of_instruction));
         }
         // cb->translated = false;
-        _asm_jump(cb->next_true);
+        // _asm_jump(cb->next_true);
         // logme_AST("after if")
         translate_snippet(cb->next_true);
         translate_snippet(cb->next_false);
