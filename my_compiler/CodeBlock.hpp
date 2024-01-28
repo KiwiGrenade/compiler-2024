@@ -164,6 +164,15 @@ public:
         }
         return result;
     }
+
+    long long get_arg_size() {
+        if(args == nullptr) {
+            return 0;
+        }
+        else {
+            return args->size();
+        }
+    }
 };
 
 
@@ -202,11 +211,11 @@ struct Identifier {
                 break;
             case TAB_PID:
                 pid = _name.substr(0, lbrt_idx);
-                ref_pid = _name.substr(lbrt_idx + 1, _name.size() - rbrt_idx);
+                ref_pid = _name.substr(lbrt_idx + 1, _name.size() - lbrt_idx - 2);
                 break;
             case TAB_NUM:
                 pid = _name.substr(0, lbrt_idx);
-                ref_num = std::stoll(_name.substr(lbrt_idx + 1, _name.size() - rbrt_idx));
+                ref_num = std::stoll(_name.substr(lbrt_idx + 1, _name.size() - lbrt_idx - 2));
                 break;
         }
     }

@@ -123,12 +123,11 @@ void AST::_asm_load(ptr(Value) val, Register reg, ptr(CodeBlock) cb) {
     }
     else {
         ident pid = val->identifier->pid;
+        logme_AST("Loading: " + std::to_string(val->identifier->type));
         switch(val->identifier->type) {
             case PID:
-                logme_AST("Loading: " + pid);
                 // load arg
                 if(curr_proc->isArg(pid)) {
-                    logme_AST("Loading: " + pid);
                     Address arg_address = curr_proc->get_arg(pid)->address;
                     _asm_put_const(arg_address, Register::A);
                     add_asm_instruction(new_ptr(AsmInstruction, "LOAD", Register::A));
@@ -136,16 +135,13 @@ void AST::_asm_load(ptr(Value) val, Register reg, ptr(CodeBlock) cb) {
                 }
                 // load var
                 else {
-                    logme_AST("Loading: " + pid);
                     address = curr_proc->get_var(pid)->address;
                     _asm_put_const(address, Register::A);
                     add_asm_instruction(new_ptr(AsmInstruction, "LOAD", Register::A));
                 }
-                logme_AST("Loading COMPLETED");
                 // get var addres
                 break;
             case TAB_NUM:
-                logme_AST("Loading: TAB");
                 if(curr_proc->isArg(pid)) {
                     Address arg_address = curr_proc->get_arg(pid)->address;
                     _asm_put_const(arg_address, Register::A);
@@ -166,11 +162,13 @@ void AST::_asm_load(ptr(Value) val, Register reg, ptr(CodeBlock) cb) {
             default:
                 // logme_AST("DUPA");
                 ident ref_pid = val->identifier->ref_pid;
-                // pid is argument
                 if(curr_proc->isArg(pid)) {
+                    // pid: argument, ref_pid: argument
+                    logme_AST("DUPA");
                     if(curr_proc->isArg(ref_pid)) {
-                        Address ref_address = curr_proc->get_arg(ref_pid)->address;
-                        _asm_put_const(ref_address, Register::A);
+                        logme_AST("DUPA");
+                        Address ref_arg_address = curr_proc->get_arg(ref_pid)->address;
+                        _asm_put_const(ref_arg_address, Register::A);
                         add_asm_instruction(new_ptr(AsmInstruction, "LOAD", Register::A));
                         add_asm_instruction(new_ptr(AsmInstruction, "LOAD", Register::A));
                         add_asm_instruction(new_ptr(AsmInstruction, "PUT", reg));    
@@ -182,14 +180,19 @@ void AST::_asm_load(ptr(Value) val, Register reg, ptr(CodeBlock) cb) {
                         add_asm_instruction(new_ptr(AsmInstruction, "ADD", reg));
                         add_asm_instruction(new_ptr(AsmInstruction, "LOAD", Register::A));
                     }
+                    // pid: argument, ref_pid: variable
                     else {
+                        logme_AST(ref_pid);
                         Address ref_arg_address = curr_proc->get_var(ref_pid)->address;
+                        logme_AST("NIEDUPA");
+
                         _asm_put_const(ref_arg_address, Register::A);
                         add_asm_instruction(new_ptr(AsmInstruction, "LOAD", Register::A));
                         add_asm_instruction(new_ptr(AsmInstruction, "PUT", reg));    
                         // add_asm_instruction(new_ptr(AsmInstruction, "ADD", Register::B))
                         
                         Address arg_address = curr_proc->get_arg(pid)->address;
+                        logme_AST("NIEDUPA");
                         _asm_put_const(arg_address, Register::A);
                         add_asm_instruction(new_ptr(AsmInstruction, "LOAD", Register::A));
                         add_asm_instruction(new_ptr(AsmInstruction, "ADD", reg));
@@ -239,6 +242,7 @@ void AST::_asm_load(ptr(Value) val, Register reg, ptr(CodeBlock) cb) {
                 break;
         }
     }
+    logme_AST("Loading COMPLETED");
 }
 
 // uses A, H and REG -> vals ptr(Value) is now equall to contents of reg A

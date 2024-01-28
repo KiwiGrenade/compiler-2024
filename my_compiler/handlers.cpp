@@ -131,29 +131,45 @@ void extract_proc_params(std::shared_ptr<std::vector<ptr(Value)>> args, ident pa
     // return args;
 }
 
+void checkNumArgs(std::shared_ptr<std::vector<ptr(Value)>> args, ident proc_id) {
+    if((*args).size() != AST::architecture.procedures[proc_id]->get_arg_size()) {
+        error("Wrong number of parameters in procedure: " + proc_id, true);
+    }
+}
+
 void checkSequence(std::shared_ptr<std::vector<ptr(Value)>> args, ident proc_id) {
     for(long long i = 0; i < (*args).size(); i++) {
         ptr(Argument) call_arg = AST::architecture.procedures[proc_id]->get_arg_at_idx(i);
         ident param_pid = (*args)[i]->identifier->pid;
 
-        if(call_arg->table) {
-            if(curr_proc->isTab(param_pid) == false) {
+        if(call_arg->table != curr_proc->isTab(param_pid)) {
                 error("Wrong parameters in procedure: " + proc_id, true);
-            }
-            else if(curr_proc->isArg(param_pid) && (curr_proc->get_arg(param_pid)->table == false)) {
-                error("Wrong parameters in procedure: " + proc_id, true);
-            }
-        }
-        else {
-            if(curr_proc->isTab(param_pid)) {
-                error("Wrong parameters in procedure: " + proc_id, true);
-            }
-            if(curr_proc->isArg(param_pid) && (curr_proc->get_arg(param_pid)->table == true)) {
-                error("Wrong parameters in procedure: " + proc_id, true);
-            }
         }
     }
 }
+// void checkSequence(std::shared_ptr<std::vector<ptr(Value)>> args, ident proc_id) {
+//     for(long long i = 0; i < (*args).size(); i++) {
+//         ptr(Argument) call_arg = AST::architecture.procedures[proc_id]->get_arg_at_idx(i);
+//         ident param_pid = (*args)[i]->identifier->pid;
+
+//         if(call_arg->table) {
+//             if(curr_proc->isTab(param_pid) == false) {
+//                 error("Wrong parameters in procedure: " + proc_id, true);
+//             }
+//             else if(curr_proc->isArg(param_pid) && (curr_proc->get_arg(param_pid)->table == false)) {
+//                 error("Wrong parameters in procedure: " + proc_id, true);
+//             }
+//         }
+//         else {
+//             if(curr_proc->isTab(param_pid)) {
+//                 error("Wrong parameters in procedure: " + proc_id, true);
+//             }
+//             if(curr_proc->isArg(param_pid) && (curr_proc->get_arg(param_pid)->table == true)) {
+//                 error("Wrong parameters in procedure: " + proc_id, true);
+//             }
+//         }
+//     }
+// }
 
 void markParamsInitialized(std::shared_ptr<std::vector<ptr(Value)>> args, ident proc_id) {
     for(long long i = 0; i < (*args).size(); i++) {
@@ -418,6 +434,7 @@ ident handleProcCall(ident PROC_CALL) {
     
     extract_proc_params(params, params_id);
 
+    checkNumArgs(params, proc_id);
     checkSequence(params, proc_id);
 
     markParamsInitialized(params, proc_id);
@@ -445,6 +462,29 @@ ident handleCondition(ident VAL1, ident OP, long long OP_TYPE, ident VAL2) {
     checkIfInitialized(instruction.expr->right);
 
     AST::add_vertex(curr_vertex_id, instruction);
+// args = (*params);
+    
+//     AST::add_vertex(curr_vertex_id, instruction);
+
+//     providers.push_back(EdgeProvider(curr_vertex_id, curr_vertex_id));
+
+//     curr_vertex_id++;
+//     return std::to_string(curr_vertex_id - 1);
+ 
+// }
+
+// ident handleCondition(ident VAL1, ident OP, long long OP_TYPE, ident VAL2) {
+//     set_head();
+
+//     Instruction instruction;
+//     instruction.type_of_instruction = content_type::_COND;
+
+//     instruction.expr = new_ptr(Expression, new_ptr(Value, VAL1), OP_TYPE, new_ptr(Value, VAL2));
+
+//     checkIfInitialized(instruction.expr->left);
+//     checkIfInitialized(instruction.expr->right);
+
+//     AST::add_vertex(curr_vertex_id, instruction);
 
     logme_handle("CONDITION:" + VAL1 + " " + OP + " "+ VAL2);
     
