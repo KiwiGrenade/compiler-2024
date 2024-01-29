@@ -448,7 +448,7 @@ void AST::_asm_mul(ptr(Value) val1, ptr(Value) val2, ptr(CodeBlock) cb) {
     add_asm_instruction(new_ptr(AsmInstruction, "SHR", Register::C));
     add_asm_instruction(new_ptr(AsmInstruction, "GET", Register::C));
     add_asm_instruction(new_ptr(AsmInstruction, "SHL", Register::B));
-    _asm_jump(cb, instruction_pointer-14);
+    _asm_jump(cb, instruction_pointer-13);
     add_asm_instruction(new_ptr(AsmInstruction, "GET", Register::D)); /*JUMP 1*/
 }
 
