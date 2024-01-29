@@ -491,9 +491,6 @@ void AST::_asm_sub(ptr(Value) val1, ptr(Value) val2, ptr(CodeBlock) cb) {
     add_asm_instruction(new_ptr(AsmInstruction, "SUB", Register::C));
 }
 
-bool is_power_of_2(unsigned long long v) {
-    return (v && !(v & (v - 1)));
-}
 
 void AST::mul_var_by_const(ptr(Value) value, unsigned long long& val, Register reg, ptr(CodeBlock) cb) {
     _asm_load(value, reg, cb);
@@ -523,17 +520,16 @@ void AST::_asm_mul(ptr(Value) val1, ptr(Value) val2, ptr(CodeBlock) cb) {
     add_asm_instruction(new_ptr(AsmInstruction, "PUT", Register::C));
     _asm_load(val1, Register::B, cb);
     add_asm_instruction(new_ptr(AsmInstruction, "PUT", Register::B));
-    
     // check if B>C
-    // add_asm_instruction(new_ptr(AsmInstruction, "SUB", Register::C));
-    // _asm_jump_zero(cb, instruction_pointer+7); /*JUMP4*/ // B > C
-    
-    // add_asm_instruction(new_ptr(AsmInstruction, "GET", Register::C));
-    // add_asm_instruction(new_ptr(AsmInstruction, "PUT", Register::D));
-    // add_asm_instruction(new_ptr(AsmInstruction, "GET", Register::B));
-    // add_asm_instruction(new_ptr(AsmInstruction, "PUT", Register::C));
-    // add_asm_instruction(new_ptr(AsmInstruction, "GET", Register::D));
-    // add_asm_instruction(new_ptr(AsmInstruction, "PUT", Register::B));
+    add_asm_instruction(new_ptr(AsmInstruction, "SUB", Register::C));
+    _asm_jump_pos(cb, instruction_pointer+7); /*JUMP4*/ // B > C
+    // B<=C, reverse the register values
+    add_asm_instruction(new_ptr(AsmInstruction, "GET", Register::B));
+    add_asm_instruction(new_ptr(AsmInstruction, "PUT", Register::D));
+    add_asm_instruction(new_ptr(AsmInstruction, "GET", Register::C));
+    add_asm_instruction(new_ptr(AsmInstruction, "PUT", Register::B));
+    add_asm_instruction(new_ptr(AsmInstruction, "GET", Register::D));
+    add_asm_instruction(new_ptr(AsmInstruction, "PUT", Register::C));
 
     add_asm_instruction(new_ptr(AsmInstruction, "RST", Register::D));/*JUMP4*/
     add_asm_instruction(new_ptr(AsmInstruction, "GET", Register::C));  
@@ -553,39 +549,22 @@ void AST::_asm_mul(ptr(Value) val1, ptr(Value) val2, ptr(CodeBlock) cb) {
     add_asm_instruction(new_ptr(AsmInstruction, "GET", Register::D)); /*JUMP 1*/
 }
 
+
+bool is_power_of_2(unsigned long long& v) {
+    return (v && !(v & (v - 1)));
+}
+
 // uses reg: A, B, C, D, E, F
 void AST::_asm_div(ptr(Value) val1, ptr(Value) val2, ptr(CodeBlock) cb) {
-    // _asm_load(val1, Register::C, cb);
-    // add_asm_instruction(new_ptr(AsmInstruction, "PUT", Register::C));
-    // _asm_load(val2, Register::D, cb);
-    // add_asm_instruction(new_ptr(AsmInstruction, "PUT", Register::D));
-
-    // add_asm_instruction(new_ptr(AsmInstruction, "RST", Register::E));
-    // add_asm_instruction(new_ptr(AsmInstruction, "GET", Register::B));
-    // _asm_jump_zero(cb, instruction_pointer+22);
-    // add_asm_instruction(new_ptr(AsmInstruction, "RST", Register::B));
-    // add_asm_instruction(new_ptr(AsmInstruction, "INC", Register::B));
-    // add_asm_instruction(new_ptr(AsmInstruction, "GET", Register::D));
-    // add_asm_instruction(new_ptr(AsmInstruction, "SUB", Register::C));
-    // _asm_jump_pos(cb, instruction_pointer+17);/*JUMP 2*/
-    // add_asm_instruction(new_ptr(AsmInstruction, "SHL", Register::B));
-    // add_asm_instruction(new_ptr(AsmInstruction, "SHL", Register::D));
-    // _asm_jump(cb, instruction_pointer-5);
-    // add_asm_instruction(new_ptr(AsmInstruction, "GET", Register::D));
-    // add_asm_instruction(new_ptr(AsmInstruction, "SUB", Register::C));
-    // _asm_jump_pos(cb, instruction_pointer+7);/*JUMP 2*/
-    // add_asm_instruction(new_ptr(AsmInstruction, "GET", Register::E));
-    // add_asm_instruction(new_ptr(AsmInstruction, "ADD", Register::B));
-    // add_asm_instruction(new_ptr(AsmInstruction, "PUT", Register::E));
-    // add_asm_instruction(new_ptr(AsmInstruction, "GET", Register::C));
-    // add_asm_instruction(new_ptr(AsmInstruction, "SUB", Register::D));
-    // add_asm_instruction(new_ptr(AsmInstruction, "PUT", Register::C));
-    // add_asm_instruction(new_ptr(AsmInstruction, "SHR", Register::D));
-    // add_asm_instruction(new_ptr(AsmInstruction, "SHR", Register::B));
-    // add_asm_instruction(new_ptr(AsmInstruction, "GET", Register::B));
-    // _asm_jump_pos(cb, instruction_pointer-12);/*JUMP 2*/
-    // add_asm_instruction(new_ptr(AsmInstruction, "GET", Register::E));
-
+    if(val2->is_val() && is_power_of_2(val2->val)) {
+        _asm_load(val1, Register::B, cb);
+        unsigned long long n = val2->val;
+        while(n>1) {
+            add_asm_instruction(new_ptr(AsmInstruction, "SHR", Register::A));
+            n/=2;
+        }
+        return;
+    }
 
 
     _asm_load(val1, Register::B, cb);
