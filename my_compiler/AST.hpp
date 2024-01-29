@@ -81,7 +81,9 @@ private:
     static void _asm_store(ptr(Value) val, ptr(CodeBlock) cb);
 
     // EXPRESSIONS
-    static void _asm_add(ptr(Value) val1, ptr(Value) val2, ptr(CodeBlock) cb);
+    static short is_var_and_small_const(ptr(Value) val1, ptr(Value) val2);
+    static void _asm_add_sub_small_const(ptr(Value) val1, unsigned long long& const_val, Register reg, ptr(CodeBlock) cb, bool add);
+    static void _asm_add(ptr(Value) val0, ptr(Value) val1, ptr(Value) val2, ptr(CodeBlock) cb);
     static void _asm_sub(ptr(Value) val1, ptr(Value) val2, ptr(CodeBlock) cb);
     static void _asm_mul(ptr(Value) val1, ptr(Value) val2, ptr(CodeBlock) cb);
     static void _asm_div(ptr(Value) val1, ptr(Value) val2, ptr(CodeBlock) cb);
@@ -112,6 +114,8 @@ private:
     static void translate_call(Instruction ins, ptr(CodeBlock) cb);
 
     static void checkWhile(ptr(CodeBlock));
+    static void mul_var_by_const(ptr(Value) value, unsigned long long& val, Register reg, ptr(CodeBlock) cb);
+
 public:
     // k in virtual machine 
     static long long                                  instruction_pointer;

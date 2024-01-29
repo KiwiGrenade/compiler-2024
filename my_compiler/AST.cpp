@@ -96,6 +96,10 @@ void AST::_asm_jump_zero(ptr(CodeBlock) cb, Address _jump_address) {
 // uses only reg
 void AST::_asm_put_const(long long val, Register reg) {
     add_asm_instruction(new_ptr(AsmInstruction, "RST", reg));
+    if(val == 1) {
+        add_asm_instruction(new_ptr(AsmInstruction, "INC", reg));
+        return;
+    }
     std::vector<bool> bits;
     while (val > 0) {
         bits.push_back(val % 2);
@@ -401,10 +405,36 @@ void AST::_asm_cmp_neq(ptr(Value) left, ptr(Value) right, ptr(CodeBlock) cb) {
     _asm_jump_zero(cb->next_false);
 }
 
+void AST::_asm_add_sub_small_const(ptr(Value) val1, unsigned long long& const_val, Register reg, ptr(CodeBlock) cb, bool add) {
+    ident comm;
+    if(add)
+        comm = "INC";
+    else
+        comm = "DEC";
+    _asm_load(val1, reg, cb);
+    add_asm_instruction(new_ptr(AsmInstruction, "PUT", reg));
+    for(short i = 0; i < const_val; i++) {
+        add_asm_instruction(new_ptr(AsmInstruction, comm, Register::A));
+    }
+}
 
 // uses reg: A, B, C, D
-void AST::_asm_add(ptr(Value) val1, ptr(Value) val2, ptr(CodeBlock) cb) {
+void AST::_asm_add(ptr(Value) val0, ptr(Value) val1, ptr(Value) val2, ptr(CodeBlock) cb) {
     logme_AST("Add: START")
+    switch (is_var_and_small_const(val1, val2))
+    {
+        case 1: {
+            _asm_add_sub_small_const(val1, val2->val, Register::B, cb, true);
+            return;
+        }
+        case 2: {
+            _asm_add_sub_small_const(val2, val1->val, Register::C, cb, true);
+            return;
+        }
+        default:
+        break;
+    }
+
     _asm_load(val1, Register::B, cb);
     add_asm_instruction(new_ptr(AsmInstruction, "PUT", Register::B));
     _asm_load(val2, Register::C, cb);
@@ -414,6 +444,15 @@ void AST::_asm_add(ptr(Value) val1, ptr(Value) val2, ptr(CodeBlock) cb) {
     add_asm_instruction(new_ptr(AsmInstruction, "GET", Register::B));
     add_asm_instruction(new_ptr(AsmInstruction, "ADD", Register::C));
     logme_AST("Add: END")
+}
+
+short AST::is_var_and_small_const(ptr(Value) val1, ptr(Value) val2) {
+    if(val1->is_id() && !val2->is_id())
+        return 1;
+    else if (!val1->is_id() && val2->is_id())
+        return 2;
+    else
+        return 0;
 }
 
 //uses reg: A, B, C, D
@@ -427,28 +466,53 @@ void AST::_asm_sub(ptr(Value) val1, ptr(Value) val2, ptr(CodeBlock) cb) {
     add_asm_instruction(new_ptr(AsmInstruction, "SUB", Register::C));
 }
 
+bool is_power_of_2(unsigned long long v) {
+    return (v && !(v & (v - 1)));
+}
+
+void AST::mul_var_by_const(ptr(Value) value, unsigned long long& val, Register reg, ptr(CodeBlock) cb) {
+    _asm_load(value, reg, cb);
+    std::vector<bool> bits;
+    while (val > 0) {
+        bits.push_back(val % 2);
+        val/=2;
+    }
+    for(int i = bits.size(); i > 1; i--) {
+        if (bits[i]) {
+            add_asm_instruction(new_ptr(AsmInstruction, "SHL", reg));
+            add_asm_instruction(new_ptr(AsmInstruction, "INC", reg));
+        } else {
+            add_asm_instruction(new_ptr(AsmInstruction, "SHL", reg));
+        }
+    }
+}
+
 // uses reg: A, B, C, D, E
 void AST::_asm_mul(ptr(Value) val1, ptr(Value) val2, ptr(CodeBlock) cb) {
-    _asm_load(val1, Register::B, cb);
-    add_asm_instruction(new_ptr(AsmInstruction, "PUT", Register::B));
-    _asm_load(val2, Register::C, cb);
+    _asm_sub(val1, val2, cb);
+    _asm_jump_pos(cb, instruction_pointer+7); /*JUMP4*/ // B > C
+    add_asm_instruction(new_ptr(AsmInstruction, "GET", Register::C));
+    add_asm_instruction(new_ptr(AsmInstruction, "PUT", Register::D));
+    add_asm_instruction(new_ptr(AsmInstruction, "GET", Register::B));
     add_asm_instruction(new_ptr(AsmInstruction, "PUT", Register::C));
-    add_asm_instruction(new_ptr(AsmInstruction, "RST", Register::D));
-    add_asm_instruction(new_ptr(AsmInstruction, "GET", Register::C)); /*JUMP 3*/ 
-    _asm_jump_zero(cb, instruction_pointer+14);
+    add_asm_instruction(new_ptr(AsmInstruction, "GET", Register::D));
+    add_asm_instruction(new_ptr(AsmInstruction, "PUT", Register::B));
+    add_asm_instruction(new_ptr(AsmInstruction, "RST", Register::D));/*JUMP4*/
+    add_asm_instruction(new_ptr(AsmInstruction, "GET", Register::C));  
+    _asm_jump_zero(cb, instruction_pointer+14);/*JUMP 1*/ /*JUMP 3*/
     add_asm_instruction(new_ptr(AsmInstruction, "SHR", Register::A));
     add_asm_instruction(new_ptr(AsmInstruction, "SHL", Register::A));
     add_asm_instruction(new_ptr(AsmInstruction, "PUT", Register::E));
     add_asm_instruction(new_ptr(AsmInstruction, "GET", Register::C));
     add_asm_instruction(new_ptr(AsmInstruction, "SUB", Register::E));
-    _asm_jump_zero(cb, instruction_pointer+4);
+    _asm_jump_zero(cb, instruction_pointer+4);/*JUMP 2*/
     add_asm_instruction(new_ptr(AsmInstruction, "GET", Register::D));
     add_asm_instruction(new_ptr(AsmInstruction, "ADD", Register::B));
     add_asm_instruction(new_ptr(AsmInstruction, "PUT", Register::D));
-    add_asm_instruction(new_ptr(AsmInstruction, "SHR", Register::C));
+    add_asm_instruction(new_ptr(AsmInstruction, "SHR", Register::C));/*JUMP 2*/
     add_asm_instruction(new_ptr(AsmInstruction, "GET", Register::C));
     add_asm_instruction(new_ptr(AsmInstruction, "SHL", Register::B));
-    _asm_jump(cb, instruction_pointer-13);
+    _asm_jump(cb, instruction_pointer-13);/*JUMP 3*/
     add_asm_instruction(new_ptr(AsmInstruction, "GET", Register::D)); /*JUMP 1*/
 }
 
@@ -550,7 +614,7 @@ void AST::translate_assignment(Instruction ins, ptr(CodeBlock) cb) {
     logme_AST("Translate assignment of " + ins.lvalue->identifier->pid);
         switch(ins.expr->op) {
         case _ADD:
-            _asm_add(left, right, cb);
+            _asm_add(ins.lvalue, left, right, cb);
             break;
         case _SUB:
             _asm_sub(left, right, cb);
@@ -680,12 +744,12 @@ void AST::translate_snippet(ptr(CodeBlock) cb){
     else {
         if (cb->empty) {
             cb->translated = false;
-            _asm_jump(cb->next_true);
+            // _asm_jump(cb->next_true);
             // add_asm_instruction(new_ptr(AsmInstruction, "JUMP", cb->next_true, instruction_pointer));
             // logme_AST("My next is: " << std::to_string(cb->next_true->instructions[0].type_of_instruction));
         }
         // cb->translated = false;
-        // _asm_jump(cb->next_true);
+        _asm_jump(cb->next_true);
         // logme_AST("after if")
         translate_snippet(cb->next_true);
         translate_snippet(cb->next_false);

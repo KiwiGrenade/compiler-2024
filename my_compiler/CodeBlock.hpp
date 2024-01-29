@@ -216,10 +216,23 @@ struct Identifier {
                 break;
         }
     }
+
+    friend bool operator==(const Identifier& id1, const Identifier& id2) {
+        return (id1.type == id2.type &&
+                id1.pid == id2.pid &&
+                id1.ref_num == id2.ref_num &&
+                id2.ref_pid == id2.ref_pid);
+    }
+    friend bool operator!=(const Identifier& id1, const Identifier& id2) {
+        return !(id1.type == id2.type &&
+                id1.pid == id2.pid &&
+                id1.ref_num == id2.ref_num &&
+                id2.ref_pid == id2.ref_pid);
+    }
 };
 
 struct Value {
-    long long val = -1;
+    unsigned long long val = -1;
     std::shared_ptr<Identifier> identifier = nullptr;
 
     Value() = default;
@@ -232,6 +245,23 @@ struct Value {
             identifier = new_ptr(Identifier, _name);
         }
     };
+
+    bool is_val() {
+        return (identifier == nullptr);
+    }
+
+    bool is_id() {
+        return (identifier != nullptr);
+    }
+
+    friend bool operator==(const Value& val1, const Value& val2) {
+        return (val1.identifier == val2.identifier &&
+                val1.val == val2.val);
+    }
+    friend bool operator!=(const Value& val1, const Value& val2) {
+        return !(val1.identifier == val2.identifier &&
+                val1.val == val2.val);
+    }
 };
 
 enum content_type {
