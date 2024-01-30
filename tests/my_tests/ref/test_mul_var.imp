@@ -1,0 +1,44 @@
+PROGRAM IS
+    a,b,c
+IN
+    a:=0;
+    b:=30;
+    c:=a*b;
+    IF c=0 THEN
+        WRITE 1;
+    ELSE
+        WRITE 0;
+    ENDIF
+
+    a:=30;
+    b:=0;
+    c:=a*b;
+    IF c=0 THEN
+        WRITE 1;
+    ELSE
+        WRITE 0;
+    ENDIF
+    
+    a:=0;
+    b:=0;
+    c:=a*b;
+    IF c=0 THEN
+        WRITE 1;
+    ELSE
+        WRITE 0;
+    ENDIF
+
+    a:=1;
+    b:=1;
+    c:=a*b;
+    IF c=1 THEN
+        WRITE 1;
+    ELSE
+        WRITE 0;
+    ENDIF
+
+    a:=1;
+    b:=230491;
+    c:=a*b;
+    WRITE c;
+END

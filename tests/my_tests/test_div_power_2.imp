@@ -1,0 +1,16 @@
+PROGRAM IS
+    a,b,c
+IN
+    a:=12922301;
+    b:=30;
+
+    WHILE b > 0 DO
+        c:=a/2;
+        WRITE c;
+        c:=a/8;
+        WRITE c;
+        c:=a/256;
+        WRITE c;
+        b:=b-1;
+    ENDWHILE
+END

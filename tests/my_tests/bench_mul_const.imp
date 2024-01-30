@@ -1,0 +1,45 @@
+PROGRAM IS
+    a,b,c
+IN
+    c:=1234567*0;    
+    IF c=0 THEN
+        WRITE 1;
+    ELSE
+        WRITE 0;
+    ENDIF
+    
+    c:=1234567*1;
+    IF c=1234567 THEN
+        WRITE 1;
+    ELSE
+        WRITE 0;
+    ENDIF
+    
+    c:=1234567*2;
+    IF c=2469134 THEN
+        WRITE 1;
+    ELSE
+        WRITE 0;
+    ENDIF
+
+    c:=0*1234;
+    IF c=0 THEN
+        WRITE 1;
+    ELSE
+        WRITE 0;
+    ENDIF
+
+    c:=1*112312;
+    IF c=112312 THEN
+        WRITE 1;
+    ELSE
+        WRITE 0;
+    ENDIF
+    
+    a:=0;
+    c:=1231*1231232;
+    WHILE a < 10 DO
+        c:=c*12;
+    a:=a+1;
+    ENDWHILE
+END

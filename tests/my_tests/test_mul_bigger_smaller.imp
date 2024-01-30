@@ -1,0 +1,11 @@
+PROGRAM IS
+    a,b,c
+IN
+    a:=100;
+    b:=129301;
+    WHILE a > 0 DO
+        c:= a*b;
+        WRITE c;
+        a:=a-1;
+    ENDWHILE
+END
