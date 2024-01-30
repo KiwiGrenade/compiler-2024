@@ -512,14 +512,14 @@ void AST::mul_var_by_const(ptr(Value) value, unsigned long long& num, Register r
 // uses reg: A, B, C, D, E
 void AST::_asm_mul(ptr(Value) val1, ptr(Value) val2, ptr(CodeBlock) cb) {
     // check if val2 or val1 const
-    if(!val2->is_id()) {
-        mul_var_by_const(val1, val2->val, Register::B, cb);
-        return;
-    }
-    else if(!val1->is_id()) {
-        mul_var_by_const(val2, val1->val, Register::C, cb);
-        return;
-    }
+    // if(!val2->is_id()) {
+    //     mul_var_by_const(val1, val2->val, Register::B, cb);
+    //     return;
+    // }
+    // else if(!val1->is_id()) {
+    //     mul_var_by_const(val2, val1->val, Register::C, cb);
+    //     return;
+    // }
 
     // always mul
     _asm_load(val2, Register::C, cb);
