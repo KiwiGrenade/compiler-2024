@@ -488,40 +488,40 @@ void AST::_asm_sub(ptr(Value) val1, ptr(Value) val2, ptr(CodeBlock) cb) {
 }
 
 
-void AST::mul_var_by_const(ptr(Value) value, unsigned long long& val, Register reg, ptr(CodeBlock) cb) {
-    _asm_load(value, reg, cb);
-    std::vector<bool> bits;
-    while (val > 0) {
-        bits.push_back(val % 2);
-        val/=2;
+void AST::mul_var_by_const(ptr(Value) value, unsigned long long& num, Register reg, ptr(CodeBlock) cb) {
+    if(num == 0) {
+        add_asm_instruction(new_ptr(AsmInstruction, "RST", Register::A));
+        return;
     }
-    for(int i = bits.size(); i > 1; i--) {
-        if (bits[i]) {
-            add_asm_instruction(new_ptr(AsmInstruction, "INC", reg));
-        } else {
-            add_asm_instruction(new_ptr(AsmInstruction, "SHL", reg));
+    _asm_load(value, reg, cb);
+    std::shared_ptr<std::vector<ptr(AsmInstruction)>> temp_vec = std::make_shared<std::vector<ptr(AsmInstruction)>>();
+    while(num != 1) {
+        if(num%2) {
+            temp_vec->emplace_back(new_ptr(AsmInstruction, "INC", Register::A));
+            num--;
+        }
+        else {
+            temp_vec->emplace_back(new_ptr(AsmInstruction, "SHL", Register::A));
+            num/=2;
         }
     }
+    _asm_jump_zero(cb, instruction_pointer+temp_vec->size()+1);
+    add_reverse_vec_asm_instructions(temp_vec);
 }
 
 // uses reg: A, B, C, D, E
 void AST::_asm_mul(ptr(Value) val1, ptr(Value) val2, ptr(CodeBlock) cb) {
-    // if(!val2->is_id()) {
-    //    _asm_load(val1, Register::B, cb);
-    //     std::shared_ptr<std::vector<ptr(AsmInstruction)>> temp_vec = std::make_shared<std::vector<ptr(AsmInstruction)>>();
-    //     while(val2->val != 1) {
-    //         if(val2->val%2) {
-    //             temp_vec->emplace_back(new_ptr(AsmInstruction, "INC", Register::A));
-    //             val2->val--;
-    //         }
-    //         else {
-    //             temp_vec->emplace_back(new_ptr(AsmInstruction, "SHL", Register::A));
-    //             val2->val/=2;
-    //         }
-    //     }
-    //     add_reverse_vec_asm_instructions(temp_vec);
-    // }
+    // check if val2 or val1 const
+    if(!val2->is_id()) {
+        mul_var_by_const(val1, val2->val, Register::B, cb);
+        return;
+    }
+    else if(!val1->is_id()) {
+        mul_var_by_const(val2, val1->val, Register::C, cb);
+        return;
+    }
 
+    // always mul
     _asm_load(val2, Register::C, cb);
     add_asm_instruction(new_ptr(AsmInstruction, "PUT", Register::C));
     _asm_load(val1, Register::B, cb);
@@ -563,6 +563,12 @@ bool is_power_of_2(unsigned long long& v) {
 
 // uses reg: A, B, C, D, E, F
 void AST::_asm_div(ptr(Value) val1, ptr(Value) val2, ptr(CodeBlock) cb) {
+    // d/d = 1
+    if(val1==val2) {
+        add_asm_instruction(new_ptr(AsmInstruction, "RST", Register::A));
+        add_asm_instruction(new_ptr(AsmInstruction, "INC", Register::A));
+        return;
+    }
     // division by const power of 2
     if(val2->is_val() && is_power_of_2(val2->val)) {
         _asm_load(val1, Register::B, cb);
@@ -607,6 +613,10 @@ void AST::_asm_div(ptr(Value) val1, ptr(Value) val2, ptr(CodeBlock) cb) {
     add_asm_instruction(new_ptr(AsmInstruction, "GET", Register::D));
 }
 void AST::_asm_mod(ptr(Value) val1, ptr(Value) val2, ptr(CodeBlock) cb) {
+    if(val1==val2) {
+        add_asm_instruction(new_ptr(AsmInstruction, "RST", Register::A));
+        return;
+    }
     _asm_load(val1, Register::B, cb);
     add_asm_instruction(new_ptr(AsmInstruction, "PUT", Register::B));
     _asm_load(val2, Register::C, cb);
@@ -800,15 +810,11 @@ void AST::translate_snippet(ptr(CodeBlock) cb){
         }
     }
     else {
-        if (cb->empty) {
+        if (cb->empty || cb->next_true->last) {
             cb->translated = false;
-            // _asm_jump(cb->next_true);
-            // add_asm_instruction(new_ptr(AsmInstruction, "JUMP", cb->next_true, instruction_pointer));
-            // logme_AST("My next is: " << std::to_string(cb->next_true->instructions[0].type_of_instruction));
+            _asm_jump(cb->next_true);
         }
-        // cb->translated = false;
-        _asm_jump(cb->next_true);
-        // logme_AST("after if")
+        // _asm_jump(cb->next_true);
         translate_snippet(cb->next_true);
         translate_snippet(cb->next_false);
     }
