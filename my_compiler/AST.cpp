@@ -462,9 +462,9 @@ void AST::_asm_add(ptr(Value) val0, ptr(Value) val1, ptr(Value) val2, ptr(CodeBl
 }
 
 short AST::is_var_and_small_const(ptr(Value) val1, ptr(Value) val2) {
-    if(val1->is_id() && !val2->is_id())
+    if(val1->is_id() && !val2->is_id() && val2->val < 5)
         return 1;
-    else if (!val1->is_id() && val2->is_id())
+    else if (!val1->is_id() && val2->is_id() && val1->val < 5)
         return 2;
     else
         return 0;
@@ -476,10 +476,6 @@ void AST::_asm_sub(ptr(Value) val1, ptr(Value) val2, ptr(CodeBlock) cb) {
     {
         case 1: {
             _asm_add_sub_small_const(val1, val2->val, Register::B, cb, false);
-            return;
-        }
-        case 2: {
-            _asm_add_sub_small_const(val2, val1->val, Register::C, cb, false);
             return;
         }
         default:
@@ -501,7 +497,6 @@ void AST::mul_var_by_const(ptr(Value) value, unsigned long long& val, Register r
     }
     for(int i = bits.size(); i > 1; i--) {
         if (bits[i]) {
-            add_asm_instruction(new_ptr(AsmInstruction, "SHL", reg));
             add_asm_instruction(new_ptr(AsmInstruction, "INC", reg));
         } else {
             add_asm_instruction(new_ptr(AsmInstruction, "SHL", reg));
@@ -511,10 +506,21 @@ void AST::mul_var_by_const(ptr(Value) value, unsigned long long& val, Register r
 
 // uses reg: A, B, C, D, E
 void AST::_asm_mul(ptr(Value) val1, ptr(Value) val2, ptr(CodeBlock) cb) {
-    Register small = Register::C; //10
-    Register big = Register::B; //2
-    Register counter = Register::D;
-    Register temp = Register::E;
+    // if(!val2->is_id()) {
+    //    _asm_load(val1, Register::B, cb);
+    //     std::shared_ptr<std::vector<ptr(AsmInstruction)>> temp_vec = std::make_shared<std::vector<ptr(AsmInstruction)>>();
+    //     while(val2->val != 1) {
+    //         if(val2->val%2) {
+    //             temp_vec->emplace_back(new_ptr(AsmInstruction, "INC", Register::A));
+    //             val2->val--;
+    //         }
+    //         else {
+    //             temp_vec->emplace_back(new_ptr(AsmInstruction, "SHL", Register::A));
+    //             val2->val/=2;
+    //         }
+    //     }
+    //     add_reverse_vec_asm_instructions(temp_vec);
+    // }
 
     _asm_load(val2, Register::C, cb);
     add_asm_instruction(new_ptr(AsmInstruction, "PUT", Register::C));
@@ -531,6 +537,7 @@ void AST::_asm_mul(ptr(Value) val1, ptr(Value) val2, ptr(CodeBlock) cb) {
     add_asm_instruction(new_ptr(AsmInstruction, "GET", Register::D));
     add_asm_instruction(new_ptr(AsmInstruction, "PUT", Register::C));
 
+    // normal multiplication
     add_asm_instruction(new_ptr(AsmInstruction, "RST", Register::D));/*JUMP4*/
     add_asm_instruction(new_ptr(AsmInstruction, "GET", Register::C));  
     _asm_jump_zero(cb, instruction_pointer+13);/*JUMP 1*/ /*JUMP 3*/
@@ -556,6 +563,7 @@ bool is_power_of_2(unsigned long long& v) {
 
 // uses reg: A, B, C, D, E, F
 void AST::_asm_div(ptr(Value) val1, ptr(Value) val2, ptr(CodeBlock) cb) {
+    // division by const power of 2
     if(val2->is_val() && is_power_of_2(val2->val)) {
         _asm_load(val1, Register::B, cb);
         unsigned long long n = val2->val;
@@ -566,7 +574,7 @@ void AST::_asm_div(ptr(Value) val1, ptr(Value) val2, ptr(CodeBlock) cb) {
         return;
     }
 
-
+    // normal division
     _asm_load(val1, Register::B, cb);
     add_asm_instruction(new_ptr(AsmInstruction, "PUT", Register::B));
     _asm_load(val2, Register::C, cb);
