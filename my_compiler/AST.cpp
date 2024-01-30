@@ -403,19 +403,6 @@ void AST::_asm_cmp_more_or_equal(ptr(Value) left, ptr(Value) right, ptr(CodeBloc
     _asm_load(right, Register::C, cb);
     add_asm_instruction(new_ptr(AsmInstruction, "SUB", Register::B));
     _asm_jump_pos(cb->next_false);
-
-    // _asm_load(right, Register::C, cb);
-    // add_asm_instruction(new_ptr(AsmInstruction, "PUT", Register::C));
-    // _asm_load(left, Register::B, cb);
-    // add_asm_instruction(new_ptr(AsmInstruction, "PUT", Register::B));
-    
-    // add_asm_instruction(new_ptr(AsmInstruction, "SUB", Register::C));
-    // _asm_jump_pos(cb->next_true);
-    // add_asm_instruction(new_ptr(AsmInstruction, "GET", Register::B));
-    // add_asm_instruction(new_ptr(AsmInstruction, "INC", Register::A));
-    // add_asm_instruction(new_ptr(AsmInstruction, "SUB", Register::C));
-    // _asm_jump_pos(cb->next_true);
-    // _asm_jump_zero(cb->next_false);
 }
 
 void AST::_asm_cmp_neq(ptr(Value) left, ptr(Value) right, ptr(CodeBlock) cb) {
@@ -593,42 +580,30 @@ void AST::_asm_div(ptr(Value) val1, ptr(Value) val2, ptr(CodeBlock) cb) {
     add_asm_instruction(new_ptr(AsmInstruction, "PUT", Register::C));
     _asm_load(val2, Register::D, cb);
     add_asm_instruction(new_ptr(AsmInstruction, "PUT", Register::D));
-
-
     add_asm_instruction(new_ptr(AsmInstruction, "RST", Register::B));
     add_asm_instruction(new_ptr(AsmInstruction, "RST", Register::E));
-
     add_asm_instruction(new_ptr(AsmInstruction, "GET", Register::D));
     _asm_jump_zero(cb, instruction_pointer+21);
-    
     add_asm_instruction(new_ptr(AsmInstruction, "INC", Register::E));
-    
     add_asm_instruction(new_ptr(AsmInstruction, "GET", Register::D));
     add_asm_instruction(new_ptr(AsmInstruction, "SUB", Register::C));
     _asm_jump_pos(cb, instruction_pointer+4);  //OK
-    
     add_asm_instruction(new_ptr(AsmInstruction, "SHL", Register::E));
     add_asm_instruction(new_ptr(AsmInstruction, "SHL", Register::D));
     _asm_jump(cb, instruction_pointer-5);
-
     add_asm_instruction(new_ptr(AsmInstruction, "GET", Register::D));
     add_asm_instruction(new_ptr(AsmInstruction, "SUB", Register::C));
     _asm_jump_pos(cb, instruction_pointer+7);  //OK
-
     add_asm_instruction(new_ptr(AsmInstruction, "GET", Register::B));
     add_asm_instruction(new_ptr(AsmInstruction, "ADD", Register::E));
     add_asm_instruction(new_ptr(AsmInstruction, "PUT", Register::B));
-
     add_asm_instruction(new_ptr(AsmInstruction, "GET", Register::C));
     add_asm_instruction(new_ptr(AsmInstruction, "SUB", Register::D));
     add_asm_instruction(new_ptr(AsmInstruction, "PUT", Register::C));
-
     add_asm_instruction(new_ptr(AsmInstruction, "SHR", Register::D));
     add_asm_instruction(new_ptr(AsmInstruction, "SHR", Register::E));
-
     add_asm_instruction(new_ptr(AsmInstruction, "GET", Register::E));
     _asm_jump_pos(cb, instruction_pointer-12);  //OK
-
     add_asm_instruction(new_ptr(AsmInstruction, "GET", Register::B));
 }
 void AST::_asm_mod(ptr(Value) val1, ptr(Value) val2, ptr(CodeBlock) cb) {
@@ -641,39 +616,28 @@ void AST::_asm_mod(ptr(Value) val1, ptr(Value) val2, ptr(CodeBlock) cb) {
     add_asm_instruction(new_ptr(AsmInstruction, "PUT", Register::C));
     _asm_load(val2, Register::D, cb);
     add_asm_instruction(new_ptr(AsmInstruction, "PUT", Register::D));
-
-
     add_asm_instruction(new_ptr(AsmInstruction, "RST", Register::B));
     add_asm_instruction(new_ptr(AsmInstruction, "RST", Register::E));
-
     add_asm_instruction(new_ptr(AsmInstruction, "GET", Register::D));
     _asm_jump_zero(cb, instruction_pointer+21);
-    
     add_asm_instruction(new_ptr(AsmInstruction, "INC", Register::E));
-    
     add_asm_instruction(new_ptr(AsmInstruction, "GET", Register::D));
     add_asm_instruction(new_ptr(AsmInstruction, "SUB", Register::C));
     _asm_jump_pos(cb, instruction_pointer+4);  //OK
-    
     add_asm_instruction(new_ptr(AsmInstruction, "SHL", Register::E));
     add_asm_instruction(new_ptr(AsmInstruction, "SHL", Register::D));
     _asm_jump(cb, instruction_pointer-5);
-
     add_asm_instruction(new_ptr(AsmInstruction, "GET", Register::D));
     add_asm_instruction(new_ptr(AsmInstruction, "SUB", Register::C));
     _asm_jump_pos(cb, instruction_pointer+7);  //OK
-
     add_asm_instruction(new_ptr(AsmInstruction, "GET", Register::B));
     add_asm_instruction(new_ptr(AsmInstruction, "ADD", Register::E));
     add_asm_instruction(new_ptr(AsmInstruction, "PUT", Register::B));
-
     add_asm_instruction(new_ptr(AsmInstruction, "GET", Register::C));
     add_asm_instruction(new_ptr(AsmInstruction, "SUB", Register::D));
     add_asm_instruction(new_ptr(AsmInstruction, "PUT", Register::C));
-
     add_asm_instruction(new_ptr(AsmInstruction, "SHR", Register::D));
     add_asm_instruction(new_ptr(AsmInstruction, "SHR", Register::E));
-
     add_asm_instruction(new_ptr(AsmInstruction, "GET", Register::E));
     _asm_jump_pos(cb, instruction_pointer-12);  //OK
 
