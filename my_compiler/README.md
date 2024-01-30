@@ -15,6 +15,9 @@ Aby skompilować program należy umieścić wszystkie pliki wymienione w sekcji 
 
 Po kompilacji otrzymamy plik binarny o nazwie **compiler**.
 
+Usuwanie plików utworzonych podczas budowania:
+>$ make clean-all
+
 ### Użytkowanie programu
 
 >$ ./compiler [OPCJA] [PLIK_WEJŚCIOWY] [PLIK_WYJŚCIOWY]

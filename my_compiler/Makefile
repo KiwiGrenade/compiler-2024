@@ -23,10 +23,7 @@ types:
 main:
 	$(CXX) -c main.cpp -o main.o
 
-clean-logs:
-	rm -f logs.log
-
 clean-build:
 	rm -f grammar.cpp grammar.hpp lexer.cpp lexer.o grammar.o handlers.o AST.o main.o compiler
 
-clean-all: clean-logs clean-build
+clean-all: clean-build

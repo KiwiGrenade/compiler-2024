@@ -398,17 +398,32 @@ void AST::_asm_cmp_eq(ptr(Value) left, ptr(Value) right, ptr(CodeBlock) cb) {
 }
 
 void AST::_asm_cmp_more_or_equal(ptr(Value) left, ptr(Value) right, ptr(CodeBlock) cb) {
-    _asm_load(right, Register::C, cb);
-    add_asm_instruction(new_ptr(AsmInstruction, "PUT", Register::C));
-    _asm_load(left, Register::B, cb);
+    _asm_load(right, Register::B, cb);
     add_asm_instruction(new_ptr(AsmInstruction, "PUT", Register::B));
-    add_asm_instruction(new_ptr(AsmInstruction, "SUB", Register::C));
-    _asm_jump_pos(cb->next_true);
-    add_asm_instruction(new_ptr(AsmInstruction, "GET", Register::B));
-    add_asm_instruction(new_ptr(AsmInstruction, "INC", Register::A));
-    add_asm_instruction(new_ptr(AsmInstruction, "SUB", Register::C));
-    _asm_jump_pos(cb->next_true);
-    _asm_jump_zero(cb->next_false);
+    _asm_load(left, Register::C, cb);
+    // add_asm_instruction(new_ptr(AsmInstruction, "PUT", Register::C));
+    add_asm_instruction(new_ptr(AsmInstruction, "SUB", Register::B));
+    _asm_jump_pos(cb->next_false);
+    
+    // _asm_jump_pos(cb->next_true);
+    // add_asm_instruction(new_ptr(AsmInstruction, "GET", Register::B));
+    // add_asm_instruction(new_ptr(AsmInstruction, "INC", Register::A));
+    // add_asm_instruction(new_ptr(AsmInstruction, "SUB", Register::C));
+    // _asm_jump_pos(cb->next_true);
+    // _asm_jump_zero(cb->next_false);
+
+    // _asm_load(right, Register::C, cb);
+    // add_asm_instruction(new_ptr(AsmInstruction, "PUT", Register::C));
+    // _asm_load(left, Register::B, cb);
+    // add_asm_instruction(new_ptr(AsmInstruction, "PUT", Register::B));
+    
+    // add_asm_instruction(new_ptr(AsmInstruction, "SUB", Register::C));
+    // _asm_jump_pos(cb->next_true);
+    // add_asm_instruction(new_ptr(AsmInstruction, "GET", Register::B));
+    // add_asm_instruction(new_ptr(AsmInstruction, "INC", Register::A));
+    // add_asm_instruction(new_ptr(AsmInstruction, "SUB", Register::C));
+    // _asm_jump_pos(cb->next_true);
+    // _asm_jump_zero(cb->next_false);
 }
 
 void AST::_asm_cmp_neq(ptr(Value) left, ptr(Value) right, ptr(CodeBlock) cb) {
