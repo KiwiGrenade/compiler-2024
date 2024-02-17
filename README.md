@@ -1,6 +1,6 @@
-# Kompilator Fiutt'a
+# Kompilator 2024
 >     “Tyle kodu, że ja ********.”
->                   - Teofill Fiutt - docent wydziału mechaniki teoretycznej
-![Teofill Fiutt's Image](docent_Teofill_Fiutt.jpg)
+>                   - Teofill Fiu - docent wydziału mechaniki teoretycznej
+![Teofill Fiu's Image](docent_Teofill_Fiu.jpg)
 ## [Instrukcja obsługi](my_compiler/README.md)
 ## Autor - Jakub Jaśków
