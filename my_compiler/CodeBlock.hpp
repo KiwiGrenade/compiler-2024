@@ -41,16 +41,8 @@ struct Variable : public Pointer {
 
 struct Table: public Variable {
     //TODO: change to array
-    std::vector<ptr(Variable)> cells;
-    
     Table(ident _name, long long size): Variable(_name){
-        cells.reserve(size);
-        ident cell_name;
-        for(long long i = 0; i < size; i++) {
-            cell_name = _name + "_" + std::to_string(i);
-            cells.push_back(new_ptr(Variable, cell_name));
-        }
-        address = cells.at(0)->address;
+        MemoryManager::var_p+=size;
     }
 };
 
