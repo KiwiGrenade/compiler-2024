@@ -1,8 +1,0 @@
-(* Błąd w linii 7: niezdefiniowana wartość zmiennej a *)
-CONST
-VAR
-  b a
-BEGIN
-  READ b;
-  b:=a;
-END

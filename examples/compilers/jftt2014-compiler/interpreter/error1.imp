@@ -1,8 +1,0 @@
-(* Błąd w linii 4: druga deklaracja a *)
-CONST
-VAR
-  a b a
-BEGIN
-  READ a;
-  b:=a;
-END
